@@ -2,7 +2,7 @@ require "rake"
 
 spec = Gem::Specification.new do |s| 
   s.name = "rspactor"
-  s.version = "0.2.0"
+  s.version = "0.2.1"
   s.author = "Andreas Wolff"
   s.email = "treas@dynamicdudes.com"
   s.homepage = "http://rubyphunk.com"
