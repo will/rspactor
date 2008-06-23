@@ -25,7 +25,7 @@ class RSpactorFormatter
   def example_failed(example, counter, failure)
   end
   
-  def example_pending(example_group_description, example, message)
+  def example_pending( example, message)
   end
 
   def start_dump
