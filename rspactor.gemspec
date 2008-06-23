@@ -1,7 +1,7 @@
 spec = Gem::Specification.new do |s| 
   s.name = "rspactor"
   s.version = "0.2.1"
-  s.author = ["Andreas Wolff","Pelle Braendgaard"]
+  s.authors = ["Andreas Wolff","Pelle Braendgaard"]
   s.email = "treas@dynamicdudes.com"
   s.homepage = "http://rubyphunk.com"
   s.platform = Gem::Platform::RUBY
