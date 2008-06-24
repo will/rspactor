@@ -10,28 +10,28 @@ class RSpactorFormatter
     growl "Test Results", "#{example_count} examples, #{failure_count} failures", File.dirname(__FILE__) + "/../asset/#{img}", 0
   end
 
-  def start(example_count)
+  def start(*ignore_these)
   end
 
-  def add_example_group(example_group)
+  def add_example_group(*ignore_these)
   end
 
-  def example_started(example)
+  def example_started(*ignore_these)
   end
 
-  def example_passed(example)
+  def example_passed(*ignore_these)
   end
 
-  def example_failed(example, counter, failure)
+  def example_failed(*ignore_these)
   end
   
-  def example_pending( example, message)
+  def example_pending( *ignore_these) 
   end
 
   def start_dump
   end
 
-  def dump_failure(counter, failure)
+  def dump_failure(*ignore_these)
   end
 
   def dump_pending
