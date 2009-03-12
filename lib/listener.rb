@@ -13,7 +13,7 @@ class Listener
     @callback = lambda do |stream, ctx, num_events, paths, marks, event_ids|
       changed_files = extract_changed_files_from_paths(split_paths(paths, num_events))        
       timestamp_checked
-      yield changed_files
+      yield changed_files unless changed_files.empty?
     end
   end
   
