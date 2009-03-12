@@ -23,7 +23,7 @@ class Runner
         end
       end  
       run_spec_command(files_to_spec) unless files_to_spec.empty?
-    end
+    end.run
   end
 
   def self.run_all_specs
