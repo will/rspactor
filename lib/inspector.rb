@@ -5,85 +5,80 @@
 
 class Inspector
 
-  attr_accessor :base_spec_root
-  
   EXTENSIONS = %w(rb erb builder haml rhtml rxml yml conf opts)
   
-  def find_spec_file(file)
-    begin
-      return file if file_is_a_spec?(file)
-      spec_root = find_base_spec_root_by_file(file)
-      if spec_root
-        guessed_spec_location = guess_spec_location(file, spec_root)
-        if File.exist?(guessed_spec_location)
-          @base_spec_root = spec_root
-          return guessed_spec_location
-        end
-      end
-      nil      
-    rescue => e
-      puts "Error while parsing a file: '#{file}'"
-      puts e
-    end
+  def initialize(dir)
+    @root = dir
   end
   
-  def inner_spec_directory(path)
-    spec_base_root = find_base_spec_root_by_file(Dir.pwd + "/.")
-    inner_location = extract_inner_project_location(Dir.pwd, spec_base_root)
-    File.join(spec_base_root, inner_location)
-  end
-  
-  def find_base_spec_root_by_file(file)
-    if @base_spec_root
-      return @base_spec_root
+  def determine_spec_file(file)
+    candidates = translate(file)
+    if spec_file = candidates.find { |candidate| File.exists? candidate }
+      spec_file
     else
-      dir_parts = File.dirname(file).split("/")
-      dir_parts.size.times do |i|
-        search_dir = dir_parts[0..dir_parts.length - i - 1].join("/") + "/"
-        if Dir.entries(search_dir).include?('spec')
-          @assumed_spec_root = search_dir + "spec" 
-          break
-        end
-      end
-      return @assumed_spec_root
+      $stderr.puts "doesn't exist: #{candidates.inspect}"
     end
   end
   
-  def guess_spec_location(file, spec_root)
-    inner_location = extract_inner_project_location(file, spec_root)
-    append_spec_file_extension(File.join(spec_root, inner_location))
-  end
-
-  def project_root(spec_root)
-    spec_root.split("/")[0...-1].join("/")
-  end
-  
-  def extract_inner_project_location(file, spec_root)
-    location = file.sub(project_root(spec_root), "")
-    adapt_rails_specific_app_structure(location)
-  end
-  
-  def adapt_rails_specific_app_structure(location)
-    # Removing 'app' if its a rails controller, model, helper or view
-    fu = location.split("/")
-    if fu[1] == "app" && (fu[2] == 'controllers' || fu[2] == 'helpers' || fu[2] == 'models' || fu[2] == 'views')
-      return "/" + fu[2..fu.length].join("/")
-    end
-    location
-  end
-  
-  def append_spec_file_extension(spec_file)
-    if File.extname(spec_file) == ".rb"
-      return File.join(File.dirname(spec_file), File.basename(spec_file, ".rb")) + "_spec.rb"
+  # mappings for Rails are inspired by autotest mappings in rspec-rails
+  def translate(file)
+    file = file.sub(%r:^#{Regexp.escape(@root)}/:, '')
+    candidates = []
+    
+    if spec_file?(file)
+      candidates << file
     else
-      return spec_file + "_spec.rb"
+      spec_file = append_spec_file_extension(file)
+      
+      case file
+      when %r:^app/:
+        if file =~ %r:^app/controllers/application(_controller)?.rb$:
+          candidates << 'controllers'
+        elsif file == 'app/helpers/application_helper.rb'
+          candidates << 'helpers' << 'views'
+        else
+          candidates << spec_file.sub('app/', '')
+          
+          if file =~ %r:^app/(views/.+\.[a-z]+)\.[a-z]+$:
+            candidates << append_spec_file_extension($1)
+          elsif file =~ %r:app/helpers/(\w+)_helper.rb:
+            candidates << "views/#{$1}"
+          end
+        end
+      when %r:^lib/:
+        candidates << spec_file
+        candidates << candidates.last.sub($&, '')
+        candidates << candidates.last.sub(%r:\w+/:, '')
+      when 'config/routes.rb'
+        candidates << 'controllers' << 'helpers' << 'views'
+      when 'config/database.yml'
+        candidates << 'models'
+      when %r:^(spec/(spec_helper|shared/.*)|config/(boot|environment(s/test)?))\.rb$:
+        candidates << 'spec'
+      else
+        candidates << spec_file
+      end
+    end
+    
+    candidates.map do |candidate|
+      if candidate.index('spec') == 0
+        candidate
+      else
+        'spec/' + candidate
+      end
     end
   end
   
-  def file_is_a_spec?(file)
-    if file.split("/").include?('spec') && File.basename(file).match(/_spec.rb\z/)
-      return true
+  def append_spec_file_extension(file)
+    if File.extname(file) == ".rb"
+      file.sub(/.rb$/, "_spec.rb")
+    else
+      file + "_spec.rb"
     end
-    false
   end
+  
+  def spec_file?(file)
+    file =~ /^spec\/.+_spec.rb$/
+  end
+  
 end
