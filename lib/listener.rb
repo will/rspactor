@@ -17,8 +17,9 @@ class Listener
     end
   end
   
-  def run
-    stream = OSX::FSEventStreamCreate(OSX::KCFAllocatorDefault, callback, nil, [Dir.pwd], OSX::KFSEventStreamEventIdSinceNow, 0.5, 0)
+  def run(directories)
+    dirs = Array(directories)
+    stream = OSX::FSEventStreamCreate(OSX::KCFAllocatorDefault, callback, nil, dirs, OSX::KFSEventStreamEventIdSinceNow, 0.5, 0)
     unless stream
       $stderr.puts "Failed to create stream"
       exit(1)

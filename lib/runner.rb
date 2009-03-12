@@ -3,8 +3,9 @@ class Runner
   def self.load
     @inspector  = Inspector.new
     @interactor = Interactor.new
-
-    puts "** RSpactor is now watching at '#{Dir.pwd}'"
+    
+    dir = Dir.pwd
+    puts "** RSpactor is now watching at '#{dir}'"
     
     if initial_spec_run_abort   
       @interactor.start_termination_handler
@@ -23,7 +24,7 @@ class Runner
         end
       end  
       run_spec_command(files_to_spec) unless files_to_spec.empty?
-    end.run
+    end.run(dir)
   end
 
   def self.run_all_specs
