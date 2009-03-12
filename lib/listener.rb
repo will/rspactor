@@ -5,12 +5,12 @@ class Listener
   
   def initialize(valid_extensions = nil, &block)
     @valid_extensions = valid_extensions
-    @spec_run_time = Time.now
+    timestamp_checked
     
     begin
       callback = lambda do |stream, ctx, num_events, paths, marks, event_ids|
         changed_files = extract_changed_files_from_paths(split_paths(paths, num_events))        
-        @spec_run_time = Time.now
+        timestamp_checked
         yield changed_files
       end
 
@@ -35,6 +35,10 @@ class Listener
     end
   end
   
+  def timestamp_checked
+    @last_check = Time.now
+  end
+  
   def split_paths(paths, num_events)
     paths.regard_as('*')
     rpaths = []        
@@ -48,11 +52,14 @@ class Listener
       next if ignore_path?(path)
       Dir.glob(path + "*").each do |file|
         next if ignore_file?(file)
-        file_time = File.stat(file).mtime
-        changed_files << file if file_time > @spec_run_time
+        changed_files << file if file_changed?(file)
       end
     end
     changed_files
+  end
+  
+  def file_changed?(file)
+    File.stat(file).mtime > @last_check
   end
   
   def ignore_path?(path)
