@@ -1,11 +1,13 @@
-# Some code borrowed from http://rails.aizatto.com/2007/11/28/taming-the-autotest-beast-with-fsevents/
+require 'osx/foundation'
 
+# Some code borrowed from http://rails.aizatto.com/2007/11/28/taming-the-autotest-beast-with-fsevents/
 class Listener
   
-  def initialize(&block)
-    require 'osx/foundation'
+  def initialize(valid_extensions = nil, &block)
+    @valid_extensions = valid_extensions
+    @spec_run_time = Time.now
+    
     begin
-      @spec_run_time = Time.now
       callback = lambda do |stream, ctx, num_events, paths, marks, event_ids|
         changed_files = extract_changed_files_from_paths(split_paths(paths, num_events))        
         @spec_run_time = Time.now
@@ -43,13 +45,30 @@ class Listener
   def extract_changed_files_from_paths(paths)
     changed_files = []
     paths.each do |path|
+      next if ignore_path?(path)
       Dir.glob(path + "*").each do |file|
-        next if Inspector.file_is_invalid?(file)
+        next if ignore_file?(file)
         file_time = File.stat(file).mtime
         changed_files << file if file_time > @spec_run_time
       end
     end
     changed_files
+  end
+  
+  def ignore_path?(path)
+    path =~ /(?:^|\/)\.(git|svn)/
+  end
+  
+  def ignore_file?(file)
+    File.basename(file).index('.') == 0 or not valid_extension?(file)
+  end
+  
+  def file_extension(file)
+    file =~ /\.(\w+)$/ and $1
+  end
+  
+  def valid_extension?(file)
+    @valid_extensions.nil? or @valid_extensions.include?(file_extension(file))
   end
   
 end

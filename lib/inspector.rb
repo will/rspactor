@@ -7,10 +7,7 @@ class Inspector
 
   attr_accessor :base_spec_root
   
-  def self.file_is_invalid?(file)
-    return true unless File.basename(file) =~ /.rb\z|.rhtml\z|.erb\z|.haml\z/
-    false
-  end
+  EXTENSIONS = %w(rb erb builder haml rhtml rxml yml conf opts)
   
   def find_spec_file(file)
     begin

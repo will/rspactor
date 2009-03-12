@@ -13,7 +13,7 @@ class Runner
       run_all_specs 
     end
     
-    Listener.new do |files|
+    Listener.new(Inspector::EXTENSIONS) do |files|
       files_to_spec = []
       files.each do |file|
         spec_file = @inspector.find_spec_file(file)
