@@ -11,13 +11,14 @@ class Inspector
     @root = dir
   end
   
-  def determine_spec_file(file)
+  def determine_spec_files(file)
     candidates = translate(file)
-    if spec_file = candidates.find { |candidate| File.exists? candidate }
-      spec_file
-    else
+    spec_files = candidates.select { |candidate| File.exists? candidate }
+    
+    if spec_files.empty?
       $stderr.puts "doesn't exist: #{candidates.inspect}"
     end
+    spec_files
   end
   
   # mappings for Rails are inspired by autotest mappings in rspec-rails
@@ -51,9 +52,9 @@ class Inspector
         candidates << candidates.last.sub(%r:\w+/:, '')
       when 'config/routes.rb'
         candidates << 'controllers' << 'helpers' << 'views'
-      when 'config/database.yml'
+      when 'config/database.yml', 'db/schema.rb'
         candidates << 'models'
-      when %r:^(spec/(spec_helper|shared/.*)|config/(boot|environment(s/test)?))\.rb$:
+      when %r:^(spec/(spec_helper|shared/.*)|config/(boot|environment(s/test)?))\.rb$:, 'spec/spec.opts'
         candidates << 'spec'
       else
         candidates << spec_file

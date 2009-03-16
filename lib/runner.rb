@@ -14,9 +14,10 @@ class Runner
     Listener.new(Inspector::EXTENSIONS) do |files|
       files_to_spec = []
       files.each do |file|
-        if spec_file = @inspector.determine_spec_file(file)
-          puts spec_file
-          files_to_spec << spec_file 
+        spec_files = @inspector.determine_spec_files(file)
+        unless spec_files.empty?
+          puts spec_files.join("\n")
+          files_to_spec.concat spec_files
         end
       end  
       run_spec_command(files_to_spec)
@@ -36,7 +37,6 @@ class Runner
     return if paths.empty?
     cmd = "#{ruby_opts} #{spec_runner} #{paths.join(" ")} #{spec_opts} "
     cmd << "-r #{File.dirname(__FILE__)}/resulting.rb -f RSpactorFormatter:STDOUT"
-    #puts cmd
     system(cmd)
   end
   

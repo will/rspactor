@@ -56,6 +56,10 @@ describe Inspector do
       translate('config/database.yml').should == ['spec/models']
     end
     
+    it "should consider all models when db/schema.rb changes" do
+      translate('db/schema.rb').should == ['spec/models']
+    end
+    
     it "should consider all specs when spec_helper changes" do
       translate('spec/spec_helper.rb').should == ['spec']
     end
