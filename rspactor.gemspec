@@ -10,11 +10,8 @@ Gem::Specification.new do |s|
   s.default_executable = %q{rspactor}
   s.email = %q{mislav.marohnic@gmail.com}
   s.executables = ["rspactor"]
-  s.extra_rdoc_files = ["LICENSE"]
-  s.files = ["VERSION.yml", "bin/rspactor", "lib/inspector.rb", "lib/interactor.rb", "lib/listener.rb", "lib/resulting.rb", "lib/rspactor.rb", "lib/runner.rb", "spec/inspector_spec.rb", "spec/listener_spec.rb", "spec/runner_spec.rb", "LICENSE"]
-  s.has_rdoc = true
+  s.files = ["VERSION.yml", "bin/rspactor", "lib/inspector.rb", "lib/interactor.rb", "lib/listener.rb", "lib/resulting.rb", "lib/rspactor.rb", "lib/runner.rb", "images/rails_fail.png", "images/rails_ok.png", "spec/inspector_spec.rb", "spec/listener_spec.rb", "spec/runner_spec.rb", "LICENSE"]
   s.homepage = %q{http://github.com/mislav/rspactor}
-  s.rdoc_options = ["--inline-source", "--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.1}
   s.summary = %q{RSpactor is a command line tool to automatically run your changed specs (much like autotest).}

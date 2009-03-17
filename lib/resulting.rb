@@ -7,7 +7,7 @@ class RSpactorFormatter
   
   def dump_summary(duration, example_count, failure_count, pending_count)
     img = (failure_count == 0) ? "rails_ok.png" : "rails_fail.png"
-    growl "Test Results", "#{example_count} examples, #{failure_count} failures", File.dirname(__FILE__) + "/../asset/#{img}", 0
+    growl "Test Results", "#{example_count} examples, #{failure_count} failures", File.dirname(__FILE__) + "/../images/#{img}", 0
   end
 
   def start(*ignore_these)
