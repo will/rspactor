@@ -5,6 +5,9 @@ require 'listener'
 class Runner
   
   def self.load
+    dotfile = File.join(ENV['HOME'], '.rspactor')
+    Kernel.load dotfile if File.exists?(dotfile)
+      
     dir = Dir.pwd
     @inspector  = Inspector.new(dir)
     @interactor = Interactor.new

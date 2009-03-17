@@ -13,9 +13,20 @@ describe ::Runner do
     @runner = ::Runner
   end
   
+  def with_env(name, value)
+    old_value = ENV[name]
+    ENV[name] = value
+    begin
+      yield
+    ensure
+      ENV[name] = old_value
+    end
+  end
+  
   describe "setup" do
     before(:each) do
       Dir.stub!(:pwd).and_return('/my/path')
+      File.stub!(:exists?).and_return(false)
       @runner.stub!(:puts)
       Inspector.stub!(:new)
       Interactor.stub!(:new).and_return(mock('Interactor').as_null_object)
@@ -66,17 +77,19 @@ describe ::Runner do
       @runner.should_receive(:puts).with("** RSpactor is now watching at '/my/path'")
       setup
     end
+    
+    it "should load dotfile if found" do
+      with_env('HOME', '/home/moo') do
+        File.should_receive(:exists?).with('/home/moo/.rspactor').and_return(true)
+        Kernel.should_receive(:load).with('/home/moo/.rspactor')
+        setup
+      end
+    end
   end
   
   describe "#run_spec_command" do
-    def with_rubyopt(string)
-      old_rubyopt = ENV['RUBYOPT']
-      ENV['RUBYOPT'] = string
-      begin
-        yield
-      ensure
-        ENV['RUBYOPT'] = old_rubyopt
-      end
+    def with_rubyopt(string, &block)
+      with_env('RUBYOPT', string, &block)
     end
     
     def run(paths)
@@ -89,11 +102,11 @@ describe ::Runner do
     end
     
     it "should specify runner spec runner with joined paths" do
-      run(%w(foo bar)).should include('spec foo bar')
+      run(%w(foo bar)).should include(' spec foo bar ')
     end
     
     it "should specify default options: --color" do
-      run('foo').should include('--color')
+      run('foo').should include(' --color')
     end
     
     it "should setup RUBYOPT environment variable" do
@@ -109,11 +122,11 @@ describe ::Runner do
     end
     
     it "should include growl formatter" do
-      run('foo').should include('-f RSpactorFormatter:STDOUT')
+      run('foo').should include(' -f RSpactorFormatter:STDOUT')
     end
     
     it "should include 'progress' formatter" do
-      run('foo').should include('-f progress')
+      run('foo').should include(' -f progress')
     end
     
     it "should not include 'progress' formatter if there already are 2 or more formatters" do
