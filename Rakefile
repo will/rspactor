@@ -6,7 +6,7 @@ begin
     
     def fill_in_gemspec_defaults(gemspec)
       if gemspec.files.nil? || gemspec.files.empty?
-        gemspec.files = FileList["[A-Z]*.*", "{bin,generators,lib,images,test,spec}/**/*", "README*", "LICENSE*"]
+        gemspec.files = FileList['Rakefile', '{bin,lib,images,spec}/**/*', 'README*', 'LICENSE*']
       end
 
       if gemspec.executables.nil? || gemspec.executables.empty?
