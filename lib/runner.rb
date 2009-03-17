@@ -49,11 +49,21 @@ class Runner
   end
   
   def self.spec_opts
-    if File.exist?("spec/spec.opts")
-      return "-O spec/spec.opts"
+    if File.exist?('spec/spec.opts')
+      opts = File.read('spec/spec.opts').gsub("\n", ' ')
     else
-      return "--color"
+      opts = "--color"
     end
+    
+    opts << ' ' << formatter_opts
+    # only add the "progress" formatter unless no other (besides growl) is specified
+    opts << ' -f progress' unless opts.scan('-f').length > 1
+    
+    opts
+  end
+  
+  def self.formatter_opts
+    "-r #{File.dirname(__FILE__)}/resulting.rb -f RSpactorFormatter:STDOUT"
   end
   
   def self.spec_runner

@@ -111,6 +111,15 @@ describe ::Runner do
     it "should include growl formatter" do
       run('foo').should include('-f RSpactorFormatter:STDOUT')
     end
+    
+    it "should include 'progress' formatter" do
+      run('foo').should include('-f progress')
+    end
+    
+    it "should not include 'progress' formatter if there already are 2 or more formatters" do
+      @runner.should_receive(:formatter_opts).and_return('-f foo -f bar')
+      run('foo').should_not include('-f progress')
+    end
   end
   
 end
