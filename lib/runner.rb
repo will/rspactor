@@ -1,3 +1,7 @@
+require 'inspector'
+require 'interactor'
+require 'listener'
+
 class Runner
   
   def self.load
@@ -37,6 +41,10 @@ class Runner
     return if paths.empty?
     cmd = "#{ruby_opts} #{spec_runner} #{paths.join(" ")} #{spec_opts} "
     cmd << "-r #{File.dirname(__FILE__)}/resulting.rb -f RSpactorFormatter:STDOUT"
+    run_command cmd
+  end
+  
+  def self.run_command(cmd)
     system(cmd)
   end
   
@@ -44,7 +52,7 @@ class Runner
     if File.exist?("spec/spec.opts")
       return "-O spec/spec.opts"
     else
-      return "-c -f progress"
+      return "--color"
     end
   end
   
@@ -57,6 +65,7 @@ class Runner
   end
   
   def self.ruby_opts
-    %(RUBYOPT='-Ilib:spec #{ENV['RUBYOPT']}')
+    other = ENV['RUBYOPT'] ? " #{ENV['RUBYOPT']}" : ''
+    %(RUBYOPT='-Ilib:spec#{other}')
   end
 end
