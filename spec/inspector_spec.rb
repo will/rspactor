@@ -35,9 +35,13 @@ describe Inspector do
         ['spec/helpers/foo_helper_spec.rb', 'spec/views/foo']
     end
     
-    it "should translate files under 'lib/' directory" do
+    it "should translate files under deep 'lib/' directory" do
       translate('/project/lib/awesum/rox.rb').should ==
         ['spec/lib/awesum/rox_spec.rb', 'spec/awesum/rox_spec.rb', 'spec/rox_spec.rb']
+    end
+    
+    it "should translate files under shallow 'lib/' directory" do
+      translate('lib/runner.rb').should == ['spec/lib/runner_spec.rb', 'spec/runner_spec.rb']
     end
     
     it "should handle relative paths" do

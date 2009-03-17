@@ -1,8 +1,5 @@
-# The inspector make some assumptions about how your project is structured and where your spec files are located.
-# That said: The 'spec' directory, containing all your test files, must rest in the root directory of your project.
-# Futhermore it tries to locate controller, model, helper and view specs for a rails app (or projects with an identical structure)
-# in root/spec/controllers, root/spec/models, root/spec/helpers and root/spec/views.
-
+# Maps the changed filenames to list of specs to run in the next go.
+# Assumes Rails-like directory structure
 class Inspector
 
   EXTENSIONS = %w(rb erb builder haml rhtml rxml yml conf opts)
@@ -48,8 +45,10 @@ class Inspector
         end
       when %r:^lib/:
         candidates << spec_file
+        # lib/foo/bar_spec.rb -> lib/bar_spec.rb
         candidates << candidates.last.sub($&, '')
-        candidates << candidates.last.sub(%r:\w+/:, '')
+        # lib/bar_spec.rb -> bar_spec.rb
+        candidates << candidates.last.sub(%r:\w+/:, '') if candidates.last.index('/')
       when 'config/routes.rb'
         candidates << 'controllers' << 'helpers' << 'views'
       when 'config/database.yml', 'db/schema.rb'
