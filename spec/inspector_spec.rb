@@ -1,8 +1,8 @@
-require 'inspector'
+require 'rspactor/inspector'
 
-describe Inspector do
+describe RSpactor::Inspector do
   before(:all) do
-    @inspector = Inspector.new('/project')
+    @inspector = described_class.new('/project')
   end
   
   def translate(file)

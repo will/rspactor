@@ -1,6 +1,6 @@
 require 'spec/runner/formatter/base_formatter'
 
-class RSpactorFormatter < Spec::Runner::Formatter::BaseFormatter
+class RSpecGrowler < Spec::Runner::Formatter::BaseFormatter
   def dump_summary(duration, total, failures, pending)
     image_path = File.dirname(__FILE__) + "/../images/rails_#{failures.zero?? 'ok' : 'fail'}.png"
     growl "Test Results", "#{total} examples, #{failures} failures", image_path, 0

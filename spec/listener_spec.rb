@@ -1,8 +1,8 @@
-require 'listener'
+require 'rspactor/listener'
 
-describe Listener do
+describe RSpactor::Listener do
   before(:all) do
-    @listener = Listener.new(%w(rb erb haml))
+    @listener = described_class.new(%w(rb erb haml))
   end
   
   it "should be timestamped" do
@@ -21,8 +21,12 @@ describe Listener do
     @listener.ignore_file?('/project/.foo').should be
   end
   
+  it "should not ignore files in directories which start with a dot" do
+    @listener.ignore_file?('/project/.foo/bar.rb').should be_false
+  end
+  
   it "should not ignore files without extension" do
-    @listener.ignore_file?('/project/foo.rb').should_not be
+    @listener.ignore_file?('/project/foo.rb').should be_false
   end
   
   it "should ignore files without extension" do

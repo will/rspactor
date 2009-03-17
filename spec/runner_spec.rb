@@ -1,16 +1,16 @@
-require 'runner'
+require 'rspactor/runner'
 
-class ::Runner
-  def self.run_command(cmd)
-    # never shell out in tests
-    cmd
-  end
-end
-
-describe ::Runner do
+describe RSpactor::Runner do
   
-  before(:all) do
-    @runner = ::Runner
+  described_class.class_eval do
+    def self.run_command(cmd)
+      # never shell out in tests
+      cmd
+    end
+  end
+  
+  def runner
+    described_class
   end
   
   def with_env(name, value)
@@ -27,18 +27,18 @@ describe ::Runner do
     before(:each) do
       Dir.stub!(:pwd).and_return('/my/path')
       File.stub!(:exists?).and_return(false)
-      @runner.stub!(:puts)
-      Inspector.stub!(:new)
-      Interactor.stub!(:new).and_return(mock('Interactor').as_null_object)
-      Listener.stub!(:new).and_return(mock('Listener').as_null_object)
+      runner.stub!(:puts)
+      RSpactor::Inspector.stub!(:new)
+      RSpactor::Interactor.stub!(:new).and_return(mock('Interactor').as_null_object)
+      RSpactor::Listener.stub!(:new).and_return(mock('Listener').as_null_object)
     end
     
     def setup
-      @runner.load
+      runner.load
     end
     
     it "should initialize Inspector" do
-      Inspector.should_receive(:new).with('/my/path')
+      RSpactor::Inspector.should_receive(:new).with('/my/path')
       setup
     end
   
@@ -46,35 +46,35 @@ describe ::Runner do
       interactor = mock('Interactor')
       interactor.should_receive(:wait_for_enter_key).with(instance_of(String), 3)
       interactor.should_receive(:start_termination_handler)
-      Interactor.should_receive(:new).and_return(interactor)
+      RSpactor::Interactor.should_receive(:new).and_return(interactor)
       setup
     end
   
     it "should run all specs if Interactor isn't interrupted" do
       interactor = mock('Interactor', :start_termination_handler => nil)
       interactor.should_receive(:wait_for_enter_key).and_return(nil)
-      Interactor.should_receive(:new).and_return(interactor)
-      @runner.should_receive(:run_spec_command).with('spec')
+      RSpactor::Interactor.should_receive(:new).and_return(interactor)
+      runner.should_receive(:run_spec_command).with('spec')
       setup
     end
   
     it "should skip running all specs if Interactor is interrupted" do
       interactor = mock('Interactor', :start_termination_handler => nil)
       interactor.should_receive(:wait_for_enter_key).and_return(true)
-      Interactor.should_receive(:new).and_return(interactor)
-      @runner.should_not_receive(:run_spec_command)
+      RSpactor::Interactor.should_receive(:new).and_return(interactor)
+      runner.should_not_receive(:run_spec_command)
       setup
     end
   
     it "should run Listener" do
       listener = mock('Listener')
       listener.should_receive(:run).with('/my/path')
-      Listener.should_receive(:new).with(instance_of(Array)).and_return(listener)
+      RSpactor::Listener.should_receive(:new).with(instance_of(Array)).and_return(listener)
       setup
     end
   
     it "should output 'watching' message on start" do
-      @runner.should_receive(:puts).with("** RSpactor is now watching at '/my/path'")
+      runner.should_receive(:puts).with("** RSpactor is now watching at '/my/path'")
       setup
     end
     
@@ -93,11 +93,11 @@ describe ::Runner do
     end
     
     def run(paths)
-      @runner.run_spec_command(paths)
+      runner.run_spec_command(paths)
     end
     
     it "should exit if the paths argument is empty" do
-      @runner.should_not_receive(:run_command)
+      runner.should_not_receive(:run_command)
       run([])
     end
     
@@ -122,7 +122,7 @@ describe ::Runner do
     end
     
     it "should include growl formatter" do
-      run('foo').should include(' -f RSpactorFormatter:STDOUT')
+      run('foo').should include(' -f RSpecGrowler:STDOUT')
     end
     
     it "should include 'progress' formatter" do
@@ -130,7 +130,7 @@ describe ::Runner do
     end
     
     it "should not include 'progress' formatter if there already are 2 or more formatters" do
-      @runner.should_receive(:formatter_opts).and_return('-f foo --format bar')
+      runner.should_receive(:formatter_opts).and_return('-f foo --format bar')
       run('foo').should_not include('-f progress')
     end
   end
