@@ -79,3 +79,6 @@ module RSpactor
     end
   end
 end
+
+# backward compatibility
+Runner = RSpactor::Runner

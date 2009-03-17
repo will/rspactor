@@ -135,4 +135,9 @@ describe RSpactor::Runner do
     end
   end
   
+  it "should have Runner in global namespace for backwards compatibility" do
+    defined?(::Runner).should be_true
+    ::Runner.should == runner
+  end
+  
 end
