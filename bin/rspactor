@@ -1,8 +1,4 @@
 #!/usr/bin/env ruby
-
-require File.join(File.dirname(__FILE__), '..', 'lib', 'interactor')
-require File.join(File.dirname(__FILE__), '..', 'lib', 'listener')
-require File.join(File.dirname(__FILE__), '..', 'lib', 'inspector')
-require File.join(File.dirname(__FILE__), '..', 'lib', 'runner')
+require 'rspactor'
 
 Runner.load
