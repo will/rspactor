@@ -2,8 +2,22 @@ require 'spec/runner/formatter/base_formatter'
 
 class RSpecGrowler < Spec::Runner::Formatter::BaseFormatter
   def dump_summary(duration, total, failures, pending)
-    image_path = File.dirname(__FILE__) + "/../images/rails_#{failures.zero?? 'ok' : 'fail'}.png"
-    growl "Test Results", "#{total} examples, #{failures} failures", image_path, 0
+    icon = if failures > 0
+      'failed'
+    elsif pending > 0
+      'pending'
+    else
+      'success'
+    end
+    
+    image_path = File.dirname(__FILE__) + "/../images/#{icon}.png"
+    message = "#{total} examples, #{failures} failures"
+    
+    if pending > 0
+      message << " (#{pending} pending)"
+    end
+    
+    growl "Test Results", message, image_path, 0
   end
   
   def growl(title, msg, img, pri = 0)
