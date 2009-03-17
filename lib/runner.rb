@@ -39,9 +39,7 @@ class Runner
   def self.run_spec_command(paths)
     paths = Array(paths)
     return if paths.empty?
-    cmd = "#{ruby_opts} #{spec_runner} #{paths.join(" ")} #{spec_opts} "
-    cmd << "-r #{File.dirname(__FILE__)}/resulting.rb -f RSpactorFormatter:STDOUT"
-    run_command cmd
+    run_command [ruby_opts, spec_runner, paths, spec_opts].flatten.join(' ')
   end
   
   def self.run_command(cmd)
@@ -57,7 +55,7 @@ class Runner
     
     opts << ' ' << formatter_opts
     # only add the "progress" formatter unless no other (besides growl) is specified
-    opts << ' -f progress' unless opts.scan('-f').length > 1
+    opts << ' -f progress' unless opts.scan(/\s(?:-f|--format)\b/).length > 1
     
     opts
   end

@@ -117,7 +117,7 @@ describe ::Runner do
     end
     
     it "should not include 'progress' formatter if there already are 2 or more formatters" do
-      @runner.should_receive(:formatter_opts).and_return('-f foo -f bar')
+      @runner.should_receive(:formatter_opts).and_return('-f foo --format bar')
       run('foo').should_not include('-f progress')
     end
   end
