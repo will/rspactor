@@ -1,43 +1,9 @@
-class RSpactorFormatter
-  attr_accessor :example_group, :options, :where
-  def initialize(options, where)
-    @options = options
-    @where = where
-  end
-  
-  def dump_summary(duration, example_count, failure_count, pending_count)
-    img = (failure_count == 0) ? "rails_ok.png" : "rails_fail.png"
-    growl "Test Results", "#{example_count} examples, #{failure_count} failures", File.dirname(__FILE__) + "/../images/#{img}", 0
-  end
+require 'spec/runner/formatter/base_formatter'
 
-  def start(*ignore_these)
-  end
-
-  def add_example_group(*ignore_these)
-  end
-
-  def example_started(*ignore_these)
-  end
-
-  def example_passed(*ignore_these)
-  end
-
-  def example_failed(*ignore_these)
-  end
-  
-  def example_pending( *ignore_these) 
-  end
-
-  def start_dump
-  end
-
-  def dump_failure(*ignore_these)
-  end
-
-  def dump_pending
-  end
-
-  def close
+class RSpactorFormatter < Spec::Runner::Formatter::BaseFormatter
+  def dump_summary(duration, total, failures, pending)
+    image_path = File.dirname(__FILE__) + "/../images/rails_#{failures.zero?? 'ok' : 'fail'}.png"
+    growl "Test Results", "#{total} examples, #{failures} failures", image_path, 0
   end
   
   def growl(title, msg, img, pri = 0)
