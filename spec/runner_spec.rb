@@ -187,6 +187,17 @@ describe RSpactor::Runner do
       @runner.should_receive(:formatter_opts).and_return('-f foo --format bar')
       run('foo').should_not include('-f progress')
     end
+    
+    it "should save status of last run" do
+      @runner.should_receive(:run_command).twice.and_return(true, false)
+      run('foo')
+      @runner.last_run_failed?.should be_false
+      run('bar')
+      @runner.last_run_failed?.should be_true
+      run([])
+      @runner.last_run_failed?.should be_false
+    end
+  end
   
   describe "#spec_changed_files" do
     before(:each) do

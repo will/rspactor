@@ -51,9 +51,19 @@ module RSpactor
 
     def run_spec_command(paths)
       paths = Array(paths)
-      return if paths.empty?
-      run_command [ruby_opts, spec_runner, paths, spec_opts].flatten.join(' ')
+      if paths.empty?
+        @last_run_failed = nil
+      else
+        cmd = [ruby_opts, spec_runner, paths, spec_opts].flatten.join(' ')
+        @last_run_failed = run_command(cmd)
+      end
     end
+    
+    def last_run_failed?
+      @last_run_failed == false
+    end
+    
+    protected
 
     def run_command(cmd)
       system(cmd)
