@@ -23,6 +23,16 @@ describe RSpactor::Runner do
     end
   end
   
+  def capture_stderr(io = StringIO.new)
+    old_err = $stderr
+    $stderr = io
+    begin
+      yield
+    ensure
+      $stderr = old_err
+    end
+  end
+  
   describe "setup" do
     before(:each) do
       Dir.stub!(:pwd).and_return('/my/path')
@@ -83,6 +93,17 @@ describe RSpactor::Runner do
         File.should_receive(:exists?).with('/home/moo/.rspactor').and_return(true)
         Kernel.should_receive(:load).with('/home/moo/.rspactor')
         setup
+      end
+    end
+    
+    it "should continue even if the dotfile raised errors" do
+      with_env('HOME', '/home/moo') do
+        File.should_receive(:exists?).and_return(true)
+        Kernel.should_receive(:load).with('/home/moo/.rspactor').and_raise(ArgumentError)
+        capture_stderr do
+          lambda { setup }.should_not raise_error
+          $stderr.string.split("\n").should include('Error while loading /home/moo/.rspactor: ArgumentError')
+        end
       end
     end
   end

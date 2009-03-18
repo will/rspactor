@@ -3,8 +3,7 @@ require 'rspactor'
 module RSpactor
   class Runner
     def self.load
-      dotfile = File.join(ENV['HOME'], '.rspactor')
-      Kernel.load dotfile if File.exists?(dotfile)
+      load_dotfile
 
       dir = Dir.pwd
       @inspector  = Inspector.new(dir)
@@ -27,6 +26,17 @@ module RSpactor
         end
         run_spec_command(files_to_spec)
       end.run(dir)
+    end
+    
+    def self.load_dotfile
+      dotfile = File.join(ENV['HOME'], '.rspactor')
+      if File.exists?(dotfile)
+        begin
+          Kernel.load dotfile
+        rescue => e
+          $stderr.puts "Error while loading #{dotfile}: #{e}"
+        end
+      end
     end
 
     def self.initial_spec_run_abort
