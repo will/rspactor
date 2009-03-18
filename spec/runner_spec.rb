@@ -3,14 +3,10 @@ require 'rspactor/runner'
 describe RSpactor::Runner do
   
   described_class.class_eval do
-    def self.run_command(cmd)
+    def run_command(cmd)
       # never shell out in tests
       cmd
     end
-  end
-  
-  def runner
-    described_class
   end
   
   def with_env(name, value)
@@ -24,59 +20,69 @@ describe RSpactor::Runner do
   end
   
   def capture_stderr(io = StringIO.new)
-    old_err = $stderr
+    old_stderr = $stderr
     $stderr = io
     begin
       yield
     ensure
-      $stderr = old_err
+      $stderr = old_stderr
     end
   end
   
-  describe "setup" do
+  describe "start" do
     before(:each) do
-      Dir.stub!(:pwd).and_return('/my/path')
-      File.stub!(:exists?).and_return(false)
-      runner.stub!(:puts)
-      RSpactor::Inspector.stub!(:new)
-      RSpactor::Interactor.stub!(:new).and_return(mock('Interactor').as_null_object)
-      RSpactor::Listener.stub!(:new).and_return(mock('Listener').as_null_object)
+      @runner = described_class.new('/my/path')
+      @old_stdout = $stdout
+      $stdout = StringIO.new
+    end
+    
+    after(:each) do
+      $stdout = @old_stdout
     end
     
     def setup
-      runner.load
+      @runner.start
+    end
+    
+    context "Interactor" do
+      before(:each) do
+        @runner.stub!(:load_dotfile)
+        @runner.stub!(:start_listener)
+        @interactor = mock('Interactor')
+        @interactor.should_receive(:start_termination_handler)
+        RSpactor::Interactor.should_receive(:new).and_return(@interactor)
+      end
+      
+      it "should start Interactor" do
+        @interactor.should_receive(:wait_for_enter_key).with(instance_of(String), 3)
+        setup
+      end
+  
+      it "should run all specs if Interactor isn't interrupted" do
+        @interactor.should_receive(:wait_for_enter_key).and_return(nil)
+        @runner.should_receive(:run_spec_command).with('spec')
+        setup
+      end
+  
+      it "should skip running all specs if Interactor is interrupted" do
+        @interactor.should_receive(:wait_for_enter_key).and_return(true)
+        @runner.should_not_receive(:run_spec_command)
+        setup
+      end
     end
     
     it "should initialize Inspector" do
+      @runner.stub!(:load_dotfile)
+      @runner.stub!(:start_interactor)
       RSpactor::Inspector.should_receive(:new).with('/my/path')
+      RSpactor::Listener.stub!(:new).and_return(mock('Listener').as_null_object)
       setup
     end
-  
-    it "should start Interactor" do
-      interactor = mock('Interactor')
-      interactor.should_receive(:wait_for_enter_key).with(instance_of(String), 3)
-      interactor.should_receive(:start_termination_handler)
-      RSpactor::Interactor.should_receive(:new).and_return(interactor)
-      setup
-    end
-  
-    it "should run all specs if Interactor isn't interrupted" do
-      interactor = mock('Interactor', :start_termination_handler => nil)
-      interactor.should_receive(:wait_for_enter_key).and_return(nil)
-      RSpactor::Interactor.should_receive(:new).and_return(interactor)
-      runner.should_receive(:run_spec_command).with('spec')
-      setup
-    end
-  
-    it "should skip running all specs if Interactor is interrupted" do
-      interactor = mock('Interactor', :start_termination_handler => nil)
-      interactor.should_receive(:wait_for_enter_key).and_return(true)
-      RSpactor::Interactor.should_receive(:new).and_return(interactor)
-      runner.should_not_receive(:run_spec_command)
-      setup
-    end
-  
+    
     it "should run Listener" do
+      @runner.stub!(:load_dotfile)
+      @runner.stub!(:start_interactor)
+      RSpactor::Inspector.stub!(:new)
       listener = mock('Listener')
       listener.should_receive(:run).with('/my/path')
       RSpactor::Listener.should_receive(:new).with(instance_of(Array)).and_return(listener)
@@ -84,41 +90,55 @@ describe RSpactor::Runner do
     end
   
     it "should output 'watching' message on start" do
-      runner.should_receive(:puts).with("** RSpactor is now watching at '/my/path'")
+      @runner.stub!(:load_dotfile)
+      @runner.stub!(:start_interactor)
+      @runner.stub!(:start_listener)
       setup
+      $stdout.string.chomp.should == "** RSpactor is now watching at '/my/path'"
     end
     
-    it "should load dotfile if found" do
-      with_env('HOME', '/home/moo') do
-        File.should_receive(:exists?).with('/home/moo/.rspactor').and_return(true)
-        Kernel.should_receive(:load).with('/home/moo/.rspactor')
-        setup
+    context "dotfile" do
+      before(:each) do
+        @runner.stub!(:start_interactor)
+        @runner.stub!(:start_listener)
       end
-    end
+      
+      it "should load dotfile if found" do
+        with_env('HOME', '/home/moo') do
+          File.should_receive(:exists?).with('/home/moo/.rspactor').and_return(true)
+          Kernel.should_receive(:load).with('/home/moo/.rspactor')
+          setup
+        end
+      end
     
-    it "should continue even if the dotfile raised errors" do
-      with_env('HOME', '/home/moo') do
-        File.should_receive(:exists?).and_return(true)
-        Kernel.should_receive(:load).with('/home/moo/.rspactor').and_raise(ArgumentError)
-        capture_stderr do
-          lambda { setup }.should_not raise_error
-          $stderr.string.split("\n").should include('Error while loading /home/moo/.rspactor: ArgumentError')
+      it "should continue even if the dotfile raised errors" do
+        with_env('HOME', '/home/moo') do
+          File.should_receive(:exists?).and_return(true)
+          Kernel.should_receive(:load).with('/home/moo/.rspactor').and_raise(ArgumentError)
+          capture_stderr do
+            lambda { setup }.should_not raise_error
+            $stderr.string.split("\n").should include('Error while loading /home/moo/.rspactor: ArgumentError')
+          end
         end
       end
     end
   end
   
   describe "#run_spec_command" do
+    before(:each) do
+      @runner = described_class.new('/my/path')
+    end
+    
     def with_rubyopt(string, &block)
       with_env('RUBYOPT', string, &block)
     end
     
     def run(paths)
-      runner.run_spec_command(paths)
+      @runner.run_spec_command(paths)
     end
     
     it "should exit if the paths argument is empty" do
-      runner.should_not_receive(:run_command)
+      @runner.should_not_receive(:run_command)
       run([])
     end
     
@@ -151,14 +171,14 @@ describe RSpactor::Runner do
     end
     
     it "should not include 'progress' formatter if there already are 2 or more formatters" do
-      runner.should_receive(:formatter_opts).and_return('-f foo --format bar')
+      @runner.should_receive(:formatter_opts).and_return('-f foo --format bar')
       run('foo').should_not include('-f progress')
     end
   end
   
   it "should have Runner in global namespace for backwards compatibility" do
     defined?(::Runner).should be_true
-    ::Runner.should == runner
+    ::Runner.should == described_class
   end
   
 end

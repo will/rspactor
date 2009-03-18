@@ -2,18 +2,33 @@ require 'rspactor'
 
 module RSpactor
   class Runner
-    def self.load
+    def self.start
+      new(Dir.pwd).start
+    end
+    
+    attr_reader :dir, :inspector, :interactor
+    
+    def initialize(dir)
+      @dir = dir
+    end
+    
+    def start
       load_dotfile
-
-      dir = Dir.pwd
-      @inspector  = Inspector.new(dir)
-      @interactor = Interactor.new
-
       puts "** RSpactor is now watching at '#{dir}'"
-
-      aborted = initial_spec_run_abort
+      start_interactor
+      start_listener
+    end
+    
+    def start_interactor
+      @interactor = Interactor.new
+      
+      aborted = @interactor.wait_for_enter_key("** Hit <enter> to skip initial spec run", 3)
       @interactor.start_termination_handler
       run_all_specs unless aborted
+    end
+    
+    def start_listener
+      @inspector = Inspector.new(dir)
 
       Listener.new(Inspector::EXTENSIONS) do |files|
         files_to_spec = []
@@ -28,7 +43,7 @@ module RSpactor
       end.run(dir)
     end
     
-    def self.load_dotfile
+    def load_dotfile
       dotfile = File.join(ENV['HOME'], '.rspactor')
       if File.exists?(dotfile)
         begin
@@ -39,25 +54,22 @@ module RSpactor
       end
     end
 
-    def self.initial_spec_run_abort
-      @interactor.wait_for_enter_key("** Hit <enter> to skip initial spec run", 3)
-    end
-
-    def self.run_all_specs
+    def run_all_specs
       run_spec_command('spec')
     end
 
-    def self.run_spec_command(paths)
+    def run_spec_command(paths)
       paths = Array(paths)
       return if paths.empty?
       run_command [ruby_opts, spec_runner, paths, spec_opts].flatten.join(' ')
     end
 
-    def self.run_command(cmd)
+    def run_command(cmd)
       system(cmd)
+      $?.success?
     end
 
-    def self.spec_opts
+    def spec_opts
       if File.exist?('spec/spec.opts')
         opts = File.read('spec/spec.opts').gsub("\n", ' ')
       else
@@ -71,11 +83,11 @@ module RSpactor
       opts
     end
 
-    def self.formatter_opts
+    def formatter_opts
       "-r #{File.dirname(__FILE__)}/../rspec_growler.rb -f RSpecGrowler:STDOUT"
     end
 
-    def self.spec_runner
+    def spec_runner
       if File.exist?("script/spec")
         "script/spec"
       else
@@ -83,7 +95,7 @@ module RSpactor
       end
     end
 
-    def self.ruby_opts
+    def ruby_opts
       other = ENV['RUBYOPT'] ? " #{ENV['RUBYOPT']}" : ''
       %(RUBYOPT='-Ilib:spec#{other}')
     end

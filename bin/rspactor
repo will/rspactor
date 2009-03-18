@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
 require 'rspactor/runner'
 
-RSpactor::Runner.load
+RSpactor::Runner.start
