@@ -21,7 +21,6 @@ module RSpactor
     
     def start_interactor
       @interactor = Interactor.new
-      
       aborted = @interactor.wait_for_enter_key("** Hit <enter> to skip initial spec run", 3)
       @interactor.start_termination_handler
       run_all_specs unless aborted
@@ -31,15 +30,7 @@ module RSpactor
       @inspector = Inspector.new(dir)
 
       Listener.new(Inspector::EXTENSIONS) do |files|
-        files_to_spec = []
-        files.each do |file|
-          spec_files = @inspector.determine_spec_files(file)
-          unless spec_files.empty?
-            puts spec_files.join("\n")
-            files_to_spec.concat spec_files
-          end
-        end
-        run_spec_command(files_to_spec)
+        spec_changed_files(files)
       end.run(dir)
     end
     
@@ -68,6 +59,18 @@ module RSpactor
       system(cmd)
       $?.success?
     end
+    
+    def spec_changed_files(files)
+      files_to_spec = files.inject([]) do |all, file|
+        all.concat inspector.determine_spec_files(file)
+      end
+      unless files_to_spec.empty?
+        puts files_to_spec.join("\n")
+        run_spec_command(files_to_spec)
+      end
+    end
+    
+    private
 
     def spec_opts
       if File.exist?('spec/spec.opts')

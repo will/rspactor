@@ -20,24 +20,31 @@ describe RSpactor::Runner do
   end
   
   def capture_stderr(io = StringIO.new)
-    old_stderr = $stderr
-    $stderr = io
-    begin
-      yield
-    ensure
-      $stderr = old_stderr
-    end
+    @old_stderr, $stderr = $stderr, io
+    begin; yield ensure; restore_stderr; end if block_given?
+  end
+  
+  def restore_stderr
+    $stderr = @old_stderr
+  end
+  
+  def capture_stdout(io = StringIO.new)
+    @old_stdout, $stdout = $stdout, io
+    begin; yield ensure; restore_stdout; end if block_given?
+  end
+  
+  def restore_stdout
+    $stdout = @old_stdout
   end
   
   describe "start" do
     before(:each) do
       @runner = described_class.new('/my/path')
-      @old_stdout = $stdout
-      $stdout = StringIO.new
+      capture_stdout
     end
     
     after(:each) do
-      $stdout = @old_stdout
+      restore_stdout
     end
     
     def setup
@@ -79,14 +86,20 @@ describe RSpactor::Runner do
       setup
     end
     
-    it "should run Listener" do
-      @runner.stub!(:load_dotfile)
-      @runner.stub!(:start_interactor)
-      RSpactor::Inspector.stub!(:new)
-      listener = mock('Listener')
-      listener.should_receive(:run).with('/my/path')
-      RSpactor::Listener.should_receive(:new).with(instance_of(Array)).and_return(listener)
-      setup
+    context "Listener" do
+      before(:each) do
+        @runner.stub!(:load_dotfile)
+        @runner.stub!(:start_interactor)
+        @inspector = mock("Inspector")
+        RSpactor::Inspector.stub!(:new).and_return(@inspector)
+        @listener = mock('Listener')
+      end
+      
+      it "should run Listener" do
+        @listener.should_receive(:run).with('/my/path')
+        RSpactor::Listener.should_receive(:new).with(instance_of(Array)).and_return(@listener)
+        setup
+      end
     end
   
     it "should output 'watching' message on start" do
@@ -173,6 +186,30 @@ describe RSpactor::Runner do
     it "should not include 'progress' formatter if there already are 2 or more formatters" do
       @runner.should_receive(:formatter_opts).and_return('-f foo --format bar')
       run('foo').should_not include('-f progress')
+    end
+  
+  describe "#spec_changed_files" do
+    before(:each) do
+      @runner = described_class.new('.')
+      @runner.stub!(:inspector).and_return(mock("Inspector"))
+    end
+    
+    def set_inspector_expectation(file, ret)
+      @runner.inspector.should_receive(:determine_spec_files).with(file).and_return(ret)
+    end
+    
+    it "should find and run spec files" do
+      set_inspector_expectation('moo.rb', ['spec/moo_spec.rb'])
+      set_inspector_expectation('views/baz.haml', [])
+      set_inspector_expectation('config/bar.yml', ['spec/bar_spec.rb', 'spec/bar_stuff_spec.rb'])
+      
+      expected = %w(spec/moo_spec.rb spec/bar_spec.rb spec/bar_stuff_spec.rb)
+      @runner.should_receive(:run_spec_command).with(expected)
+      
+      capture_stdout do
+        @runner.send(:spec_changed_files, %w(moo.rb views/baz.haml config/bar.yml))
+        $stdout.string.split("\n").should == expected
+      end
     end
   end
   
