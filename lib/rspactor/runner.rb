@@ -76,7 +76,13 @@ module RSpactor
       end
       unless files_to_spec.empty?
         puts files_to_spec.join("\n")
+        
+        previous_run_failed = last_run_failed?
         run_spec_command(files_to_spec)
+        
+        if previous_run_failed and not last_run_failed?
+          run_all_specs
+        end
       end
     end
     

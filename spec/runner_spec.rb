@@ -222,6 +222,17 @@ describe RSpactor::Runner do
         $stdout.string.split("\n").should == expected
       end
     end
+    
+    it "should run the full suite after a run succeded when the previous one failed" do
+      @runner.inspector.stub!(:determine_spec_files).and_return(['spec/foo_spec.rb'], ['spec/bar_spec.rb'])
+      
+      capture_stdout do
+        @runner.stub!(:run_spec_command)
+        @runner.should_receive(:last_run_failed?).and_return(true, false)
+        @runner.should_receive(:run_all_specs)
+        @runner.send(:spec_changed_files, %w(moo.rb))
+      end
+    end
   end
   
   it "should have Runner in global namespace for backwards compatibility" do
