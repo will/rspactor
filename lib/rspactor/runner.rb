@@ -117,6 +117,7 @@ module RSpactor
 
     def ruby_opts
       other = ENV['RUBYOPT'] ? " #{ENV['RUBYOPT']}" : ''
+      other << ' -rcoral' if options[:coral]
       %(RUBYOPT='-Ilib:spec#{other}')
     end
   end

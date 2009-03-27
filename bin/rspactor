@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
 require 'rspactor/runner'
 
-RSpactor::Runner.start
+RSpactor::Runner.start(:coral => ARGV.include?('--coral'))
