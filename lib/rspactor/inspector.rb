@@ -41,6 +41,8 @@ module RSpactor
               candidates << append_spec_file_extension($1)
             elsif file =~ %r:app/helpers/(\w+)_helper.rb:
               candidates << "views/#{$1}"
+            elsif file =~ /_observer.rb$/
+              candidates << candidates.last.sub('_observer', '')
             end
           end
         when %r:^lib/:

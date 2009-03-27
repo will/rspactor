@@ -64,6 +64,10 @@ describe RSpactor::Inspector do
       translate('db/schema.rb').should == ['spec/models']
     end
     
+    it "should consider related model when its observer changes" do
+      translate('app/models/user_observer.rb').should == ['spec/models/user_observer_spec.rb', 'spec/models/user_spec.rb']
+    end
+    
     it "should consider all specs when spec_helper changes" do
       translate('spec/spec_helper.rb').should == ['spec']
     end
