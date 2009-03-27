@@ -2,14 +2,15 @@ require 'rspactor'
 
 module RSpactor
   class Runner
-    def self.start
-      new(Dir.pwd).start
+    def self.start(options = {})
+      new(Dir.pwd, options).start
     end
     
-    attr_reader :dir, :inspector, :interactor
+    attr_reader :dir, :options, :inspector, :interactor
     
-    def initialize(dir)
+    def initialize(dir, options = {})
       @dir = dir
+      @options = options
     end
     
     def start
