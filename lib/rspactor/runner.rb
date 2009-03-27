@@ -11,6 +11,7 @@ module RSpactor
     def initialize(dir, options = {})
       @dir = dir
       @options = options
+      read_git_head
     end
     
     def start
@@ -31,7 +32,7 @@ module RSpactor
       @inspector = Inspector.new(dir)
 
       Listener.new(Inspector::EXTENSIONS) do |files|
-        spec_changed_files(files)
+        spec_changed_files(files) unless git_head_changed?
       end.run(dir)
     end
     
@@ -119,6 +120,17 @@ module RSpactor
       other = ENV['RUBYOPT'] ? " #{ENV['RUBYOPT']}" : ''
       other << ' -rcoral' if options[:coral]
       %(RUBYOPT='-Ilib:spec#{other}')
+    end
+    
+    def git_head_changed?
+      old_git_head = @git_head
+      read_git_head
+      @git_head and old_git_head and @git_head != old_git_head
+    end
+    
+    def read_git_head
+      git_head_file = File.join(dir, '.git', 'HEAD')
+      @git_head = File.exists?(git_head_file) && File.read(git_head_file)
     end
   end
 end
