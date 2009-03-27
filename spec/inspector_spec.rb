@@ -82,4 +82,38 @@ describe RSpactor::Inspector do
       translate('config/boot.rb').should == ['spec']
     end
   end
+  
+  describe "#determine_spec_files" do
+    def determine(file)
+      @inspector.determine_spec_files(file)
+    end
+    
+    it "should filter out files that don't exist on the filesystem" do
+      @inspector.should_receive(:translate).with('foo').and_return(%w(valid_spec.rb invalid_spec.rb))
+      File.should_receive(:exists?).with('valid_spec.rb').and_return(true)
+      File.should_receive(:exists?).with('invalid_spec.rb').and_return(false)
+      determine('foo').should == ['valid_spec.rb']
+    end
+    
+    it "should filter out files in subdirectories that are already on the list" do
+      @inspector.should_receive(:translate).with('foo').and_return(%w(
+        spec/foo_spec.rb
+        spec/views/moo/bar_spec.rb
+        spec/views/baa/boo_spec.rb
+        spec/models/baz_spec.rb
+        spec/controllers/moo_spec.rb
+        spec/models
+        spec/controllers
+        spec/views/baa
+      ))
+      File.stub!(:exists?).and_return(true)
+      determine('foo').should == %w(
+        spec/foo_spec.rb
+        spec/views/moo/bar_spec.rb
+        spec/models
+        spec/controllers
+        spec/views/baa
+      )
+    end
+  end
 end

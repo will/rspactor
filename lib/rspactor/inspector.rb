@@ -10,6 +10,9 @@ module RSpactor
 
     def determine_spec_files(file)
       candidates = translate(file)
+      candidates.reject { |candidate| candidate.index('.') }.each do |dir|
+        candidates.reject! { |candidate| candidate.index("#{dir}/") == 0 }
+      end
       spec_files = candidates.select { |candidate| File.exists? candidate }
 
       if spec_files.empty?
