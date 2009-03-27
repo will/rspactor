@@ -225,6 +225,7 @@ describe RSpactor::Runner do
     
     it "should run the full suite after a run succeded when the previous one failed" do
       @runner.inspector.stub!(:determine_spec_files).and_return(['spec/foo_spec.rb'], ['spec/bar_spec.rb'])
+      @runner.stub!(:options).and_return({ :retry_failed => true })
       
       capture_stdout do
         @runner.stub!(:run_spec_command)

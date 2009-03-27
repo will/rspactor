@@ -81,7 +81,7 @@ module RSpactor
         previous_run_failed = last_run_failed?
         run_spec_command(files_to_spec)
         
-        if previous_run_failed and not last_run_failed?
+        if options[:retry_failed] and previous_run_failed and not last_run_failed?
           run_all_specs
         end
       end
