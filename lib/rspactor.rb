@@ -3,4 +3,5 @@ module RSpactor
   autoload :Listener, 'rspactor/listener'
   autoload :Inspector, 'rspactor/inspector'
   autoload :Runner, 'rspactor/runner'
+  autoload :Growl, 'rspactor/growl'
 end

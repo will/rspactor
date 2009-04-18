@@ -1,6 +1,9 @@
 require 'spec/runner/formatter/base_formatter'
+require File.dirname(__FILE__) + '/rspactor/growl'
 
 class RSpecGrowler < Spec::Runner::Formatter::BaseFormatter
+  include RSpactor::Growl
+  
   def dump_summary(duration, total, failures, pending)
     icon = if failures > 0
       'failed'
@@ -17,11 +20,7 @@ class RSpecGrowler < Spec::Runner::Formatter::BaseFormatter
       message << " (#{pending} pending)"
     end
     
-    growl "Test Results", message, image_path, 0
-  end
-  
-  def growl(title, msg, img, pri = 0)
-    system("growlnotify -w -n rspactor --image #{img} -p #{pri} -m #{msg.inspect} #{title} &") 
+    notify "Test Results", message, image_path(icon)
   end
 end
 
