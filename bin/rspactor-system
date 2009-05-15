@@ -53,7 +53,9 @@ listener = RSpactor::Listener.new do |changed_files|
         existing_targets = targets.select { |file| File.exist?(File.join(dir, file)) }
       else
         inspector = RSpactor::Inspector.new(dir)
-        existing_targets = inspector.determine_spec_files(changed_file)
+        existing_targets = inspector.determine_spec_files(changed_file).map do |file|
+          file.sub(dir + '/', '')
+        end
       end
 
       if not existing_targets.empty?
