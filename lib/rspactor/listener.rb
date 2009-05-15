@@ -65,6 +65,8 @@ module RSpactor
 
     def file_changed?(file)
       File.stat(file).mtime > last_check
+    rescue Errno::ENOENT
+      false
     end
 
     def ignore_path?(path)
