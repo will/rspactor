@@ -12,7 +12,7 @@ task :gemspec => "version:read" do
     gem.summary = "RSpactor is a command line tool to automatically run your changed specs (much like autotest)."
     gem.email = "mislav.marohnic@gmail.com"
     gem.homepage = "http://github.com/mislav/rspactor"
-    gem.authors = ["Mislav Marohnić", "Andreas Wolff", "Pelle Braendgaard"]
+    gem.authors = ["Mislav Marohnić", "Andreas Wolff", "Pelle Braendgaard", "Thibaud Guillaume-Gentil"]
     gem.has_rdoc = false
     
     gem.version = GEM_VERSION

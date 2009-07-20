@@ -3,34 +3,34 @@ module RSpactor
   # Assumes Rails-like directory structure
   class Inspector
     EXTENSIONS = %w(rb erb builder haml rhtml rxml yml conf opts)
-
+    
     def initialize(dir)
       @root = dir
     end
-
+    
     def determine_spec_files(file)
       candidates = translate(file)
       candidates.reject { |candidate| candidate.index('.') }.each do |dir|
         candidates.reject! { |candidate| candidate.index("#{dir}/") == 0 }
       end
       spec_files = candidates.select { |candidate| File.exists? candidate }
-
+      
       if spec_files.empty?
         $stderr.puts "doesn't exist: #{candidates.inspect}"
       end
       spec_files
     end
-
+    
     # mappings for Rails are inspired by autotest mappings in rspec-rails
     def translate(file)
       file = file.sub(%r:^#{Regexp.escape(@root)}/:, '')
       candidates = []
-
+      
       if spec_file?(file)
         candidates << file
       else
         spec_file = append_spec_file_extension(file)
-
+        
         case file
         when %r:^app/:
           if file =~ %r:^app/controllers/application(_controller)?.rb$:
@@ -39,7 +39,7 @@ module RSpactor
             candidates << 'helpers' << 'views'
           else
             candidates << spec_file.sub('app/', '')
-
+            
             if file =~ %r:^app/(views/.+\.[a-z]+)\.[a-z]+$:
               candidates << append_spec_file_extension($1)
             elsif file =~ %r:app/helpers/(\w+)_helper.rb:
@@ -64,7 +64,7 @@ module RSpactor
           candidates << spec_file
         end
       end
-
+      
       candidates.map do |candidate|
         if candidate.index('spec') == 0
           File.join(@root, candidate)
@@ -73,7 +73,7 @@ module RSpactor
         end
       end
     end
-
+    
     def append_spec_file_extension(file)
       if File.extname(file) == ".rb"
         file.sub(/.rb$/, "_spec.rb")
@@ -81,7 +81,7 @@ module RSpactor
         file + "_spec.rb"
       end
     end
-
+    
     def spec_file?(file)
       file =~ /^spec\/.+_spec.rb$/
     end

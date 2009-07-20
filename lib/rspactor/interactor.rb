@@ -2,10 +2,11 @@ require 'timeout'
 
 module RSpactor
   class Interactor
-    def initialize
+    def initialize(dir)
+      @root = dir
       ticker
     end
-
+    
     def wait_for_enter_key(msg, seconds_to_wait)
       begin
         Timeout::timeout(seconds_to_wait) do
@@ -19,7 +20,7 @@ module RSpactor
         ticker(:stop => true)
       end
     end
-
+    
     def start_termination_handler
       @main_thread = Thread.current
       Thread.new do
@@ -30,14 +31,14 @@ module RSpactor
               @main_thread.exit
               exit
             end
-            Runner.run_all_specs
+            Runner.new(@root).run_all_specs
           end
         end
       end
     end
-
+    
     private
-
+    
     def ticker(opts = {})
       if opts[:stop]
         $stdout.puts "\n"

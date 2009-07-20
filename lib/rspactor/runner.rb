@@ -23,7 +23,7 @@ module RSpactor
     end
     
     def start_interactor
-      @interactor = Interactor.new
+      @interactor = Interactor.new(dir)
       aborted = @interactor.wait_for_enter_key("** Hit <enter> to skip initial spec run", 3)
       @interactor.start_termination_handler
       run_all_specs unless aborted
@@ -31,7 +31,7 @@ module RSpactor
     
     def start_listener
       @inspector = Inspector.new(dir)
-
+      
       Listener.new(Inspector::EXTENSIONS) do |files|
         spec_changed_files(files) unless git_head_changed?
       end.run(dir)
@@ -47,11 +47,11 @@ module RSpactor
         end
       end
     end
-
+    
     def run_all_specs
       run_spec_command(File.join(dir, 'spec'))
     end
-
+    
     def run_spec_command(paths)
       paths = Array(paths)
       if paths.empty?
@@ -67,8 +67,9 @@ module RSpactor
     end
     
     protected
-
+    
     def run_command(cmd)
+      $stderr.puts "#{cmd}"
       system(cmd)
       $?.success?
     end
@@ -90,25 +91,25 @@ module RSpactor
     end
     
     private
-
+    
     def spec_opts
       if File.exist?('spec/spec.opts')
         opts = File.read('spec/spec.opts').gsub("\n", ' ')
       else
         opts = "--color"
       end
-
+      
       opts << ' ' << formatter_opts
       # only add the "progress" formatter unless no other (besides growl) is specified
       opts << ' -f progress' unless opts.scan(/\s(?:-f|--format)\b/).length > 1
-
+      
       opts
     end
-
+    
     def formatter_opts
       "-r #{File.dirname(__FILE__)}/../rspec_growler.rb -f RSpecGrowler:STDOUT"
     end
-
+    
     def spec_runner
       if File.exist?("script/spec")
         "script/spec"
@@ -116,7 +117,7 @@ module RSpactor
         "spec"
       end
     end
-
+    
     def ruby_opts
       other = ENV['RUBYOPT'] ? " #{ENV['RUBYOPT']}" : ''
       other << ' -rcoral' if options[:coral]
