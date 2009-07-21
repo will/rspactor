@@ -23,7 +23,7 @@ module RSpactor
     end
     
     def start_interactor
-      @interactor = Interactor.new(dir)
+      @interactor = Interactor.new(dir, options)
       aborted = @interactor.wait_for_enter_key("** Hit <enter> to skip initial spec run", 3)
       @interactor.start_termination_handler
       run_all_specs unless aborted
@@ -33,7 +33,7 @@ module RSpactor
       @inspector = Inspector.new(dir)
       
       Listener.new(Inspector::EXTENSIONS) do |files|
-        spec_changed_files(files) unless git_head_changed?
+        changed_files(files) unless git_head_changed?
       end.run(dir)
     end
     
@@ -62,6 +62,12 @@ module RSpactor
       end
     end
     
+    def run_cucumber_command
+      cmd = [ruby_opts, cucumber_runner, cucumber_opts].flatten.join(' ')
+      @last_run_failed = run_command(cmd)
+      system('killall java') if options[:kill]
+    end
+    
     def last_run_failed?
       @last_run_failed == false
     end
@@ -69,20 +75,27 @@ module RSpactor
     protected
     
     def run_command(cmd)
-      $stderr.puts "#{cmd}"
       system(cmd)
       $?.success?
     end
     
-    def spec_changed_files(files)
-      files_to_spec = files.inject([]) do |all, file|
-        all.concat inspector.determine_spec_files(file)
+    def changed_files(files)
+      files = files.inject([]) do |all, file|
+        all.concat inspector.determine_files(file)
       end
-      unless files_to_spec.empty?
-        puts files_to_spec.join("\n")
+      unless files.empty?
+        system("clear;") if @options[:clear]
+        
+        if files.delete('cucumber')
+          puts '--- cucumber current tagged features ---'
+          run_cucumber_command
+        end
+        
+        # specs files
+        puts files.map { |f| f.to_s.gsub(/#{dir}/, '') }.join("\n")
         
         previous_run_failed = last_run_failed?
-        run_spec_command(files_to_spec)
+        run_spec_command(files)
         
         if options[:retry_failed] and previous_run_failed and not last_run_failed?
           run_all_specs
@@ -99,15 +112,33 @@ module RSpactor
         opts = "--color"
       end
       
-      opts << ' ' << formatter_opts
+      opts << spec_formatter_opts
       # only add the "progress" formatter unless no other (besides growl) is specified
       opts << ' -f progress' unless opts.scan(/\s(?:-f|--format)\b/).length > 1
       
       opts
     end
     
-    def formatter_opts
-      "-r #{File.dirname(__FILE__)}/../rspec_growler.rb -f RSpecGrowler:STDOUT"
+    def cucumber_opts
+      if File.exist?('features/support/cucumber.opts')
+        opts = File.read('features/support/cucumber.opts').gsub("\n", ' ')
+      else
+        opts = "--format progress --drb "
+      end
+      
+      opts << " --tags current"
+      opts << cucumber_formatter_opts
+      opts << " --require features" # because cucumber_formatter_opts overwrite default features require
+      opts << " features"
+      opts
+    end
+    
+    def spec_formatter_opts
+      " --require #{File.dirname(__FILE__)}/../rspec_growler.rb --format RSpecGrowler:STDOUT"
+    end
+    
+    def cucumber_formatter_opts
+      " --require #{File.dirname(__FILE__)}/../cucumber_growler.rb"
     end
     
     def spec_runner
@@ -115,6 +146,14 @@ module RSpactor
         "script/spec"
       else
         "spec"
+      end
+    end
+    
+    def cucumber_runner
+      if File.exist?("script/cucumber")
+        "script/cucumber"
+      else
+        "cucumber"
       end
     end
     

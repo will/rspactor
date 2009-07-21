@@ -2,14 +2,16 @@ require 'timeout'
 
 module RSpactor
   class Interactor
-    def initialize(dir)
+    def initialize(dir, options = {})
       @root = dir
+      @options = options
       ticker
     end
     
-    def wait_for_enter_key(msg, seconds_to_wait)
+    def wait_for_enter_key(msg, seconds_to_wait, clear = false)
       begin
         Timeout::timeout(seconds_to_wait) do
+          system("clear;") if clear
           ticker(:start => true, :msg => msg)
           $stdin.gets
           return true
@@ -27,7 +29,7 @@ module RSpactor
         loop do
           sleep 0.5
           if $stdin.gets
-            if wait_for_enter_key("** Running all specs.. Hit <enter> again to exit RSpactor", 3)
+            if wait_for_enter_key("** Running all specs.. Hit <enter> again to exit RSpactor", 3, @options[:clear])
               @main_thread.exit
               exit
             end

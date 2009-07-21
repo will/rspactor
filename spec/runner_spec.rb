@@ -190,7 +190,7 @@ describe RSpactor::Runner do
     end
     
     it "should include growl formatter" do
-      run('foo').should include(' -f RSpecGrowler:STDOUT')
+      run('foo').should include(' --format RSpecGrowler:STDOUT')
     end
     
     it "should include 'progress' formatter" do
@@ -198,8 +198,8 @@ describe RSpactor::Runner do
     end
     
     it "should not include 'progress' formatter if there already are 2 or more formatters" do
-      @runner.should_receive(:formatter_opts).and_return('-f foo --format bar')
-      run('foo').should_not include('-f progress')
+      @runner.should_receive(:spec_formatter_opts).and_return('-f foo --format bar')
+      run('foo').should_not include('--format progress')
     end
     
     it "should save status of last run" do
@@ -213,14 +213,14 @@ describe RSpactor::Runner do
     end
   end
   
-  describe "#spec_changed_files" do
+  describe "#changed_files" do
     before(:each) do
       @runner = described_class.new('.')
       @runner.stub!(:inspector).and_return(mock("Inspector"))
     end
     
     def set_inspector_expectation(file, ret)
-      @runner.inspector.should_receive(:determine_spec_files).with(file).and_return(ret)
+      @runner.inspector.should_receive(:determine_files).with(file).and_return(ret)
     end
     
     it "should find and run spec files" do
@@ -232,20 +232,21 @@ describe RSpactor::Runner do
       @runner.should_receive(:run_spec_command).with(expected)
       
       capture_stdout do
-        @runner.send(:spec_changed_files, %w(moo.rb views/baz.haml config/bar.yml))
+        @runner.stub!(:dir)
+        @runner.send(:changed_files, %w(moo.rb views/baz.haml config/bar.yml))
         $stdout.string.split("\n").should == expected
       end
     end
     
     it "should run the full suite after a run succeded when the previous one failed" do
-      @runner.inspector.stub!(:determine_spec_files).and_return(['spec/foo_spec.rb'], ['spec/bar_spec.rb'])
+      @runner.inspector.stub!(:determine_files).and_return(['spec/foo_spec.rb'], ['spec/bar_spec.rb'])
       @runner.stub!(:options).and_return({ :retry_failed => true })
       
       capture_stdout do
         @runner.stub!(:run_spec_command)
         @runner.should_receive(:last_run_failed?).and_return(true, false)
         @runner.should_receive(:run_all_specs)
-        @runner.send(:spec_changed_files, %w(moo.rb))
+        @runner.send(:changed_files, %w(moo.rb))
       end
     end
   end

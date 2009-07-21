@@ -13,14 +13,12 @@ class RSpecGrowler < Spec::Runner::Formatter::BaseFormatter
       'success'
     end
     
-    image_path = File.dirname(__FILE__) + "/../images/#{icon}.png"
+    # image_path = File.dirname(__FILE__) + "/../images/#{icon}.png"
     message = "#{total} examples, #{failures} failures"
-    
     if pending > 0
       message << " (#{pending} pending)"
     end
     
-    notify "Test Results", message, image_path(icon)
+    notify "Spec Results", message, icon
   end
 end
-

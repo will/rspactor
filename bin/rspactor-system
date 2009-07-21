@@ -53,11 +53,11 @@ listener = RSpactor::Listener.new do |changed_files|
         existing_targets = targets.select { |file| File.exist?(File.join(dir, file)) }
       else
         inspector = RSpactor::Inspector.new(dir)
-        existing_targets = inspector.determine_spec_files(changed_file).map do |file|
+        existing_targets = inspector.determine_files(changed_file).map do |file|
           file.sub(dir + '/', '')
         end
       end
-
+      
       if not existing_targets.empty?
         case existing_targets.first
         when %r{^test/}
@@ -77,7 +77,7 @@ listener = RSpactor::Listener.new do |changed_files|
           puts changed_file
           system command
         end
-
+        
         if $?.success?
           Growl::notify $title, "You rock!", Growl::image_path('success')
         else

@@ -8,17 +8,20 @@ module RSpactor
       @root = dir
     end
     
-    def determine_spec_files(file)
+    def determine_files(file)
       candidates = translate(file)
+      cucumberable = candidates.delete('cucumber')
       candidates.reject { |candidate| candidate.index('.') }.each do |dir|
         candidates.reject! { |candidate| candidate.index("#{dir}/") == 0 }
       end
-      spec_files = candidates.select { |candidate| File.exists? candidate }
+      files = candidates.select { |candidate| File.exists? candidate }
       
-      if spec_files.empty?
+      if files.empty? && !cucumberable
         $stderr.puts "doesn't exist: #{candidates.inspect}"
       end
-      spec_files
+      
+      files << 'cucumber' if cucumberable
+      files.uniq
     end
     
     # mappings for Rails are inspired by autotest mappings in rspec-rails
@@ -28,6 +31,8 @@ module RSpactor
       
       if spec_file?(file)
         candidates << file
+      elsif cucumber_file?(file)
+        candidates << 'cucumber'
       else
         spec_file = append_spec_file_extension(file)
         
@@ -55,8 +60,8 @@ module RSpactor
           # lib/bar_spec.rb -> bar_spec.rb
           candidates << candidates.last.sub(%r:\w+/:, '') if candidates.last.index('/')
         when 'config/routes.rb'
-          candidates << 'controllers' << 'helpers' << 'views'
-        when 'config/database.yml', 'db/schema.rb'
+          candidates << 'controllers' << 'helpers' << 'views' << 'routing'
+        when 'config/database.yml', 'db/schema.rb', 'spec/factories.rb'
           candidates << 'models'
         when %r:^(spec/(spec_helper|shared/.*)|config/(boot|environment(s/test)?))\.rb$:, 'spec/spec.opts'
           candidates << 'spec'
@@ -66,7 +71,9 @@ module RSpactor
       end
       
       candidates.map do |candidate|
-        if candidate.index('spec') == 0
+        if candidate == 'cucumber'
+          candidate
+        elsif candidate.index('spec') == 0
           File.join(@root, candidate)
         else
           File.join(@root, 'spec', candidate)
@@ -84,6 +91,9 @@ module RSpactor
     
     def spec_file?(file)
       file =~ /^spec\/.+_spec.rb$/
+    end
+    def cucumber_file?(file)
+      file =~ /^features\/.+$/
     end
   end
 end

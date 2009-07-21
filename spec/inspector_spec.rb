@@ -53,7 +53,7 @@ describe RSpactor::Inspector do
     end
     
     it "should consider all controllers, helpers and views when routes.rb changes" do
-      translate('config/routes.rb').should == ['/project/spec/controllers', '/project/spec/helpers', '/project/spec/views']
+      translate('config/routes.rb').should == ['/project/spec/controllers', '/project/spec/helpers', '/project/spec/views', '/project/spec/routing']
     end
     
     it "should consider all models when config/database.yml changes" do
@@ -62,6 +62,10 @@ describe RSpactor::Inspector do
     
     it "should consider all models when db/schema.rb changes" do
       translate('db/schema.rb').should == ['/project/spec/models']
+    end
+    
+    it "should consider all models when spec/factories.rb changes" do
+      translate('spec/factories.rb').should == ['/project/spec/models']
     end
     
     it "should consider related model when its observer changes" do
@@ -81,11 +85,18 @@ describe RSpactor::Inspector do
       translate('config/environments/test.rb').should == ['/project/spec']
       translate('config/boot.rb').should == ['/project/spec']
     end
+    
+    it "should consider cucumber when a features file change" do
+      translate('features/login.feature').should == ['cucumber']
+      translate('features/steps/webrat_steps.rb').should == ['cucumber']
+      translate('features/support/env.rb').should == ['cucumber']
+    end
+    
   end
   
-  describe "#determine_spec_files" do
+  describe "#determine_files" do
     def determine(file)
-      @inspector.determine_spec_files(file)
+      @inspector.determine_files(file)
     end
     
     it "should filter out files that don't exist on the filesystem" do
