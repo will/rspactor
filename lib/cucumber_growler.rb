@@ -15,12 +15,12 @@ module CucumberGrowler
         [:failed, :skipped, :undefined, :pending, :passed].reverse.each do |status|
           if step_mother.steps(status).any?
             icon = icon_for(status)
-            title = title_for(status)
+            # title = title_for(status)
             messages << dump_count(step_mother.steps(status).length, "step", status.to_s)
           end
         end
         
-        notify "Cucumber Results", messages.reverse.join(' - '), icon
+        notify "Cucumber Results", messages.reverse.join(", "), icon
         original_print_stats(features)
       end
     end

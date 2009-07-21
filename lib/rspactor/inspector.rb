@@ -2,7 +2,7 @@ module RSpactor
   # Maps the changed filenames to list of specs to run in the next go.
   # Assumes Rails-like directory structure
   class Inspector
-    EXTENSIONS = %w(rb erb builder haml rhtml rxml yml conf opts)
+    EXTENSIONS = %w(rb erb builder haml rhtml rxml yml conf opts feature)
     
     def initialize(dir)
       @root = dir

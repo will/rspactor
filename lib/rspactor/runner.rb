@@ -65,6 +65,8 @@ module RSpactor
     def run_cucumber_command
       cmd = [ruby_opts, cucumber_runner, cucumber_opts].flatten.join(' ')
       @last_run_failed = run_command(cmd)
+      # Workaround for killing jruby process when used with celerity, cucumber and spork
+      # if you know how doing that better, please tell me: guillaumegentil@gmail.com
       system('killall java') if options[:kill]
     end
     
