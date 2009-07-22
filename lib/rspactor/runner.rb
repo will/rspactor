@@ -23,8 +23,8 @@ module RSpactor
     end
     
     def start_interactor
-      @interactor = Interactor.new(dir, options)
-      aborted = @interactor.wait_for_enter_key("** Hit <enter> to skip initial spec run", 3)
+      @interactor = Interactor.new(self)
+      aborted = @interactor.wait_for_enter_key("** Hit <enter> to skip initial spec run", 2)
       @interactor.start_termination_handler
       run_all_specs unless aborted
     end
@@ -62,8 +62,10 @@ module RSpactor
       end
     end
     
-    def run_cucumber_command
-      cmd = [ruby_opts, cucumber_runner, cucumber_opts].flatten.join(' ')
+    def run_cucumber_command(tags = 'current')
+      system("clear;") if @options[:clear]
+      puts "#{tags} tagged features"
+      cmd = [ruby_opts, cucumber_runner, cucumber_opts(tags)].flatten.join(' ')
       @last_run_failed = run_command(cmd)
       # Workaround for killing jruby process when used with celerity, cucumber and spork
       # if you know how doing that better, please tell me: guillaumegentil@gmail.com
@@ -86,21 +88,23 @@ module RSpactor
         all.concat inspector.determine_files(file)
       end
       unless files.empty?
-        system("clear;") if @options[:clear]
         
+        # cucumber features
         if files.delete('cucumber')
-          puts '--- cucumber current tagged features ---'
           run_cucumber_command
         end
         
         # specs files
-        puts files.map { |f| f.to_s.gsub(/#{dir}/, '') }.join("\n")
-        
-        previous_run_failed = last_run_failed?
-        run_spec_command(files)
-        
-        if options[:retry_failed] and previous_run_failed and not last_run_failed?
-          run_all_specs
+        unless files.empty?
+          system("clear;") if @options[:clear]
+          puts files.map { |f| f.to_s.gsub(/#{dir}/, '') }.join("\n")
+          
+          previous_run_failed = last_run_failed?
+          run_spec_command(files)
+          
+          if options[:retry_failed] and previous_run_failed and not last_run_failed?
+            run_all_specs
+          end
         end
       end
     end
@@ -121,16 +125,16 @@ module RSpactor
       opts
     end
     
-    def cucumber_opts
+    def cucumber_opts(tags)
       if File.exist?('features/support/cucumber.opts')
         opts = File.read('features/support/cucumber.opts').gsub("\n", ' ')
       else
         opts = "--format progress --drb "
       end
       
-      opts << " --tags current"
+      opts << " --tags #{tags}"
       opts << cucumber_formatter_opts
-      opts << " --require features" # because cucumber_formatter_opts overwrite default features require
+      opts << " --require features" # because using require option overwrite default require
       opts << " features"
       opts
     end

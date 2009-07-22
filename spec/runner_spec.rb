@@ -75,7 +75,7 @@ describe RSpactor::Runner do
       end
       
       it "should start Interactor" do
-        @interactor.should_receive(:wait_for_enter_key).with(instance_of(String), 3)
+        @interactor.should_receive(:wait_for_enter_key).with(instance_of(String), 2)
         setup
       end
   
