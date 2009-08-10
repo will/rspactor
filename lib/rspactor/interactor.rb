@@ -10,10 +10,20 @@ module RSpactor
       ticker
     end
     
-    def wait_for_enter_key(msg, seconds_to_wait)
+    def self.ticker_msg(msg, seconds_to_wait = 2)
+      $stdout.print msg
+      seconds_to_wait.times do
+        $stdout.print('.')
+        $stdout.flush
+        sleep 1
+      end
+      $stdout.puts "\n"
+    end
+    
+    def wait_for_enter_key(msg, seconds_to_wait, clear = runner.options[:clear])
       begin
         Timeout::timeout(seconds_to_wait) do
-          system("clear;") if runner.options[:clear]
+          system("clear;") if clear
           ticker(:start => true, :msg => msg)
           $stdin.gets
           return true
@@ -37,7 +47,7 @@ module RSpactor
             when "ca\n" # Cucumber All: ~pending tagged feature
               runner.run_cucumber_command('~pending')
             else
-              if wait_for_enter_key("** Running all specs.. Hit <enter> again to exit RSpactor", 1)
+              if wait_for_enter_key("** Running all specs... Hit <enter> again to exit RSpactor", 1)
                 @main_thread.exit
                 exit
               end

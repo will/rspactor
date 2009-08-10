@@ -1,11 +1,16 @@
+require 'rspactor'
+
 module RSpactor
   # Maps the changed filenames to list of specs to run in the next go.
   # Assumes Rails-like directory structure
   class Inspector
     EXTENSIONS = %w(rb erb builder haml rhtml rxml yml conf opts feature)
     
-    def initialize(dir)
-      @root = dir
+    attr_reader :runner, :root
+    
+    def initialize(runner)
+      @runner = runner
+      @root = runner.dir
     end
     
     def determine_files(file)
@@ -16,17 +21,17 @@ module RSpactor
       end
       files = candidates.select { |candidate| File.exists? candidate }
       
-      if files.empty? && !cucumberable
+      if files.empty? && !candidates.empty? && !cucumberable 
         $stderr.puts "doesn't exist: #{candidates.inspect}"
       end
       
       files << 'cucumber' if cucumberable
-      files.uniq
+      files
     end
     
     # mappings for Rails are inspired by autotest mappings in rspec-rails
     def translate(file)
-      file = file.sub(%r:^#{Regexp.escape(@root)}/:, '')
+      file = file.sub(%r:^#{Regexp.escape(root)}/:, '')
       candidates = []
       
       if spec_file?(file)
@@ -42,7 +47,7 @@ module RSpactor
             candidates << 'controllers'
           elsif file == 'app/helpers/application_helper.rb'
             candidates << 'helpers' << 'views'
-          else
+          elsif !file.include?("app/views/") || runner.options[:view]
             candidates << spec_file.sub('app/', '')
             
             if file =~ %r:^app/(views/.+\.[a-z]+)\.[a-z]+$:
@@ -63,6 +68,12 @@ module RSpactor
           candidates << 'controllers' << 'helpers' << 'views' << 'routing'
         when 'config/database.yml', 'db/schema.rb', 'spec/factories.rb'
           candidates << 'models'
+        when 'config/boot.rb', 'config/environment.rb', %r:^config/environments/:, %r:^config/initializers/:, %r:^vendor/:
+          Spork.reload if runner.options[:spork]
+          Celerity.restart if runner.options[:celerity]
+          candidates << 'spec'
+        when %r:^config/:
+          # nothing
         when %r:^(spec/(spec_helper|shared/.*)|config/(boot|environment(s/test)?))\.rb$:, 'spec/spec.opts'
           candidates << 'spec'
         else
@@ -74,9 +85,9 @@ module RSpactor
         if candidate == 'cucumber'
           candidate
         elsif candidate.index('spec') == 0
-          File.join(@root, candidate)
+          File.join(root, candidate)
         else
-          File.join(@root, 'spec', candidate)
+          File.join(root, 'spec', candidate)
         end
       end
     end

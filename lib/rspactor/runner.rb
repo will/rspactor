@@ -18,19 +18,21 @@ module RSpactor
     def start
       load_dotfile
       puts "** RSpactor is now watching at '#{dir}'"
+      Spork.start if options[:spork]
+      Celerity.start(dir) if options[:celerity]
       start_interactor
       start_listener
     end
     
     def start_interactor
       @interactor = Interactor.new(self)
-      aborted = @interactor.wait_for_enter_key("** Hit <enter> to skip initial spec run", 2)
+      aborted = @interactor.wait_for_enter_key("** Hit <enter> to skip initial spec run", 2, false)
       @interactor.start_termination_handler
       run_all_specs unless aborted
     end
     
     def start_listener
-      @inspector = Inspector.new(dir)
+      @inspector = Inspector.new(self)
       
       Listener.new(Inspector::EXTENSIONS) do |files|
         changed_files(files) unless git_head_changed?
@@ -64,11 +66,11 @@ module RSpactor
     
     def run_cucumber_command(tags = 'current')
       system("clear;") if @options[:clear]
-      puts "#{tags} tagged features"
+      puts "** Running all #{tags} tagged features..."
       cmd = [ruby_opts, cucumber_runner, cucumber_opts(tags)].flatten.join(' ')
       @last_run_failed = run_command(cmd)
-      # Workaround for killing jruby process when used with celerity, cucumber and spork
-      system("kill $(ps aux | grep jruby | grep -v grep | awk '//{print $2;}')") if options[:kill]
+      # Workaround for killing jruby process when used with celerity and spork
+      Celerity.kill_jruby if options[:celerity] && options[:spork]
     end
     
     def last_run_failed?
@@ -96,6 +98,7 @@ module RSpactor
         # specs files
         unless files.empty?
           system("clear;") if @options[:clear]
+          files.uniq!
           puts files.map { |f| f.to_s.gsub(/#{dir}/, '') }.join("\n")
           
           previous_run_failed = last_run_failed?
@@ -128,7 +131,7 @@ module RSpactor
       if File.exist?('features/support/cucumber.opts')
         opts = File.read('features/support/cucumber.opts').gsub("\n", ' ')
       else
-        opts = "--format progress --drb "
+        opts = "--color --format progress --drb "
       end
       
       opts << " --tags #{tags}"

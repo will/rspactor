@@ -2,7 +2,8 @@ require 'rspactor/inspector'
 
 describe RSpactor::Inspector do
   before(:all) do
-    @inspector = described_class.new('/project')
+    options = { :view => true }
+    @inspector = described_class.new(mock('Runner', :dir => '/project', :options => options))
   end
   
   def translate(file)

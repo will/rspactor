@@ -75,16 +75,16 @@ describe RSpactor::Runner do
       end
       
       it "should start Interactor" do
-        @interactor.should_receive(:wait_for_enter_key).with(instance_of(String), 2)
+        @interactor.should_receive(:wait_for_enter_key).with(instance_of(String), 2, false)
         setup
       end
-  
+      
       it "should run all specs if Interactor isn't interrupted" do
         @interactor.should_receive(:wait_for_enter_key).and_return(nil)
         @runner.should_receive(:run_spec_command).with('/my/path/spec')
         setup
       end
-  
+      
       it "should skip running all specs if Interactor is interrupted" do
         @interactor.should_receive(:wait_for_enter_key).and_return(true)
         @runner.should_not_receive(:run_spec_command)
@@ -95,7 +95,7 @@ describe RSpactor::Runner do
     it "should initialize Inspector" do
       @runner.stub!(:load_dotfile)
       @runner.stub!(:start_interactor)
-      RSpactor::Inspector.should_receive(:new).with('/my/path')
+      RSpactor::Inspector.should_receive(:new)
       RSpactor::Listener.stub!(:new).and_return(mock('Listener').as_null_object)
       setup
     end
