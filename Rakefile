@@ -9,9 +9,9 @@ desc "generates .gemspec file"
 task :gemspec => "version:read" do
   spec = Gem::Specification.new do |gem|
     gem.name = "rspactor"
-    gem.summary = "RSpactor is a command line tool to automatically run your changed specs (much like autotest)."
-    gem.email = "mislav.marohnic@gmail.com"
-    gem.homepage = "http://github.com/mislav/rspactor"
+    gem.summary = "RSpactor is a command line tool to automatically run your changed specs & cucumber features (much like autotest)."
+    gem.email = "guillaumegentil@gmail.com"
+    gem.homepage = "http://github.com/guillaumegentil/rspactor"
     gem.authors = ["Mislav Marohnić", "Andreas Wolff", "Pelle Braendgaard", "Thibaud Guillaume-Gentil"]
     gem.has_rdoc = false
     
