@@ -26,9 +26,12 @@ module RSpactor
     
     def start_interactor
       @interactor = Interactor.new(self)
-      aborted = @interactor.wait_for_enter_key("** Hit <enter> to skip initial spec run", 2, false)
+      aborted = @interactor.wait_for_enter_key("** Hit <enter> to skip initial spec & cucumber run", 2, false)
       @interactor.start_termination_handler
-      run_all_specs unless aborted
+      unless aborted
+        run_all_specs
+        run_cucumber_command('~pending', false)
+      end
     end
     
     def start_listener
@@ -64,8 +67,8 @@ module RSpactor
       end
     end
     
-    def run_cucumber_command(tags = 'current')
-      system("clear;") if @options[:clear]
+    def run_cucumber_command(tags = 'current', clear = @options[:clear])
+      system("clear;") if clear
       puts "** Running all #{tags} tagged features..."
       cmd = [ruby_opts, cucumber_runner, cucumber_opts(tags)].flatten.join(' ')
       @last_run_failed = run_command(cmd)

@@ -2,12 +2,13 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rspactor}
-  s.version = "0.5.0"
+  s.version = "0.5.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Mislav Marohni\304\207", "Andreas Wolff", "Pelle Braendgaard", "Thibaud Guillaume-Gentil"]
   s.date = %q{2009-08-12}
   s.default_executable = %q{rspactor}
+  s.description = %q{read summary!}
   s.email = %q{guillaumegentil@gmail.com}
   s.executables = ["rspactor"]
   s.files = ["Rakefile", "bin/rspactor", "lib/cucumber_growler.rb", "lib/rspactor", "lib/rspactor/celerity.rb", "lib/rspactor/growl.rb", "lib/rspactor/inspector.rb", "lib/rspactor/interactor.rb", "lib/rspactor/listener.rb", "lib/rspactor/runner.rb", "lib/rspactor/spork.rb", "lib/rspactor.rb", "lib/rspec_growler.rb", "images/failed.png", "images/pending.png", "images/success.png", "spec/inspector_spec.rb", "spec/listener_spec.rb", "spec/runner_spec.rb", "LICENSE"]

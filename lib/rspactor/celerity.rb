@@ -10,7 +10,7 @@ module RSpactor
         system("rm #{pid_path} >/dev/null 2>&1")
       end
       # kill other mongrels
-      system("kill $(ps aux | grep 'mongrel_rails' | grep -v grep | awk '//{print $2;}')")
+      system("kill $(ps aux | grep 'mongrel_rails' | grep -v grep | awk '//{print $2;}') >/dev/null 2>&1")
       system("rake celerity_server:start >/dev/null 2>&1 &")
       Interactor.ticker_msg "** Starting celerity server"
     end
@@ -21,7 +21,7 @@ module RSpactor
     end
     
     def self.kill_jruby
-      system("kill $(ps aux | grep jruby | grep -v grep | awk '//{print $2;}')")
+      system("kill $(ps aux | grep jruby | grep -v grep | awk '//{print $2;}') >/dev/null 2>&1")
       true
     end
     
