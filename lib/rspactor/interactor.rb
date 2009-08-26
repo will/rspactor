@@ -10,7 +10,7 @@ module RSpactor
       ticker
     end
     
-    def self.ticker_msg(msg, seconds_to_wait = 2)
+    def self.ticker_msg(msg, seconds_to_wait = 3)
       $stdout.print msg
       seconds_to_wait.times do
         $stdout.print('.')

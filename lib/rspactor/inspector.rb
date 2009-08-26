@@ -68,13 +68,13 @@ module RSpactor
           candidates << 'controllers' << 'helpers' << 'views' << 'routing'
         when 'config/database.yml', 'db/schema.rb', 'spec/factories.rb'
           candidates << 'models'
-        when 'config/boot.rb', 'config/environment.rb', %r:^config/environments/:, %r:^config/initializers/:, %r:^vendor/:
+        when 'config/boot.rb', 'config/environment.rb', %r:^config/environments/:, %r:^config/initializers/:, %r:^vendor/:, 'spec/spec_helper.rb'
           Spork.reload if runner.options[:spork]
           Celerity.restart if runner.options[:celerity]
           candidates << 'spec'
         when %r:^config/:
           # nothing
-        when %r:^(spec/(spec_helper|shared/.*)|config/(boot|environment(s/test)?))\.rb$:, 'spec/spec.opts'
+        when %r:^(spec/(spec_helper|shared/.*)|config/(boot|environment(s/test)?))\.rb$:, 'spec/spec.opts', 'spec/fakeweb.rb'
           candidates << 'spec'
         else
           candidates << spec_file
