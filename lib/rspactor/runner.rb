@@ -30,7 +30,7 @@ module RSpactor
       @interactor.start_termination_handler
       unless aborted
         run_all_specs
-        run_cucumber_command('~pending', false)
+        run_cucumber_command('~@wip,~@pending', false)
       end
     end
     
@@ -67,7 +67,7 @@ module RSpactor
       end
     end
     
-    def run_cucumber_command(tags = 'current', clear = @options[:clear])
+    def run_cucumber_command(tags = '@wip:2', clear = @options[:clear])
       system("clear;") if clear
       puts "** Running all #{tags} tagged features..."
       cmd = [ruby_opts, cucumber_runner, cucumber_opts(tags)].flatten.join(' ')
@@ -134,7 +134,7 @@ module RSpactor
       if File.exist?('features/support/cucumber.opts')
         opts = File.read('features/support/cucumber.opts').gsub("\n", ' ')
       else
-        opts = "--color --format progress --drb "
+        opts = "--color --format progress --drb --no-profile"
       end
       
       opts << " --tags #{tags}"
