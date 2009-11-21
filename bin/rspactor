@@ -3,7 +3,6 @@ require 'rspactor/runner'
 
 RSpactor::Runner.start({
   :coral => ARGV.delete('--coral'),
-  :celerity => ARGV.delete('--celerity'),
   :spork => ARGV.delete('--drb'),
   :view => ARGV.delete('--view'), # by default, rspactor didn't catch specs view
   :clear => ARGV.delete('--clear'),

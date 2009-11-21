@@ -19,7 +19,6 @@ module RSpactor
       load_dotfile
       puts "** RSpactor is now watching at '#{dir}'"
       Spork.start if options[:spork]
-      Celerity.start(dir) if options[:celerity]
       start_interactor
       start_listener
     end
@@ -72,8 +71,6 @@ module RSpactor
       puts "** Running all #{tags} tagged features..."
       cmd = [ruby_opts, cucumber_runner, cucumber_opts(tags)].flatten.join(' ')
       @last_run_failed = run_command(cmd)
-      # Workaround for killing jruby process when used with celerity and spork
-      Celerity.kill_jruby if options[:celerity] && options[:spork]
     end
     
     def last_run_failed?

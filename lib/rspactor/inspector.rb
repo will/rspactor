@@ -70,7 +70,6 @@ module RSpactor
           candidates << 'models'
         when 'config/boot.rb', 'config/environment.rb', %r:^config/environments/:, %r:^config/initializers/:, %r:^vendor/:, 'spec/spec_helper.rb'
           Spork.reload if runner.options[:spork]
-          Celerity.restart if runner.options[:celerity]
           candidates << 'spec'
         when %r:^config/:
           # nothing
