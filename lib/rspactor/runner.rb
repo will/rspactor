@@ -7,7 +7,7 @@ module RSpactor
       new(run_in, options).start
     end
     
-    attr_reader :dir, :options, :inspector, :interactor
+    attr_reader :dir, :options, :inspector, :interactor, :spork
     
     def initialize(dir, options = {})
       @dir = dir
@@ -17,8 +17,8 @@ module RSpactor
     
     def start
       load_dotfile
-      puts "** RSpactor is now watching at '#{dir}'"
-      Spork.start if options[:spork]
+      puts "** RSpactor, now watching at '#{dir}'"
+      (@spork = Spork.new(self)) && @spork.start if options[:spork]
       start_interactor
       start_listener
     end
@@ -67,6 +67,8 @@ module RSpactor
     end
     
     def run_cucumber_command(tags = '@wip:2', clear = @options[:clear])
+      return unless File.exist?(File.join(dir, 'features'))
+      
       system("clear;") if clear
       puts "** Running all #{tags} tagged features..."
       cmd = [ruby_opts, cucumber_runner, cucumber_opts(tags)].flatten.join(' ')
@@ -77,7 +79,7 @@ module RSpactor
       @last_run_failed == false
     end
     
-    protected
+  protected
     
     def run_command(cmd)
       system(cmd)
@@ -111,7 +113,7 @@ module RSpactor
       end
     end
     
-    private
+  private
     
     def spec_opts
       if File.exist?('spec/spec.opts')

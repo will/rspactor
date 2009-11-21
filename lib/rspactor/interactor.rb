@@ -10,12 +10,26 @@ module RSpactor
       ticker
     end
     
-    def self.ticker_msg(msg, seconds_to_wait = 3)
+    def self.ticker_msg(msg, seconds_to_wait = 3, &block)
       $stdout.print msg
-      seconds_to_wait.times do
-        $stdout.print('.')
-        $stdout.flush
-        sleep 1
+      if block
+        @yielding_ticker = true
+        Thread.new do
+          loop do
+            $stdout.print('.') if @yielding_ticker == true
+            $stdout.flush
+            sleep 1.0
+          end
+        end
+        
+        yield
+        @yielding_ticker = false
+      else
+        seconds_to_wait.times do
+          $stdout.print('.')
+          $stdout.flush
+          sleep 1
+        end
       end
       $stdout.puts "\n"
     end
@@ -47,7 +61,7 @@ module RSpactor
             when "ca\n" # Cucumber All: ~pending tagged feature
               runner.run_cucumber_command('~@wip,~@pending')
             when "sr\n"
-              Spork.reload if runner.options[:spork]
+              runner.spork.reload if runner.spork
             else
               if wait_for_enter_key("** Running all specs... Hit <enter> again to exit RSpactor", 1)
                 @main_thread.exit

@@ -2,3 +2,8 @@
 /doc
 /pkg
 *.gem
+
+build
+.DS_Store
+nbproject
+*.tmproj
