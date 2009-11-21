@@ -20,9 +20,8 @@ end
 
 require 'spec/rake/spectask'
 Spec::Rake::SpecTask.new(:spec) do |spec|
-  # spec.libs << 'lib' << 'spec'
-  # spec.spec_files = FileList['spec/**/*_spec.rb']
-  system "ruby -Ilib bin/rspactor"
+  spec.libs << 'lib' << 'spec'
+  spec.spec_files = FileList['spec/**/*_spec.rb']
 end
 
 Spec::Rake::SpecTask.new(:rcov) do |spec|
@@ -31,9 +30,14 @@ Spec::Rake::SpecTask.new(:rcov) do |spec|
   spec.rcov = true
 end
 
+desc "starts RSpactor"
+task :rspactor do
+  system "ruby -Ilib bin/rspactor"
+end
+
 task :spec => :check_dependencies
 
-task :default => :spec
+task :default => :rspactor
 
 require 'rake/rdoctask'
 Rake::RDocTask.new do |rdoc|
