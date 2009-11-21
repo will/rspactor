@@ -1,58 +1,46 @@
-task :default => :spec
+require 'rubygems'
+require 'rake'
 
-desc "starts RSpactor"
-task :spec do
+begin
+  require 'jeweler'
+  Jeweler::Tasks.new do |gem|
+    gem.name = "rspactor"
+    gem.summary = "RSpactor is a command line tool to automatically run your changed specs & cucumber features."
+    gem.description = "RSpactor is a command line tool to automatically run your changed specs & cucumber features (much like autotest)."
+    gem.email = "thibaud@thibaud.me"
+    gem.homepage = "http://github.com/guillaumegentil/rspactor"
+    gem.authors = ["Mislav Marohnić", "Andreas Wolff", "Pelle Braendgaard", "Thibaud Guillaume-Gentil"]
+    gem.add_development_dependency "rspec", ">= 1.2.9"
+    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
+  end
+  Jeweler::GemcutterTasks.new
+rescue LoadError
+  puts "Jeweler (or a dependency) not available. Install it with: gem install jeweler"
+end
+
+require 'spec/rake/spectask'
+Spec::Rake::SpecTask.new(:spec) do |spec|
+  # spec.libs << 'lib' << 'spec'
+  # spec.spec_files = FileList['spec/**/*_spec.rb']
   system "ruby -Ilib bin/rspactor"
 end
 
-desc "generates .gemspec file"
-task :gemspec => "version:read" do
-  spec = Gem::Specification.new do |gem|
-    gem.name = "rspactor"
-    gem.summary = "RSpactor is a command line tool to automatically run your changed specs & cucumber features (much like autotest)."
-    gem.description = "read summary!"
-    gem.email = "guillaumegentil@gmail.com"
-    gem.homepage = "http://github.com/guillaumegentil/rspactor"
-    gem.authors = ["Mislav Marohnić", "Andreas Wolff", "Pelle Braendgaard", "Thibaud Guillaume-Gentil"]
-    gem.has_rdoc = false
-    
-    gem.version = GEM_VERSION
-    gem.files = FileList['Rakefile', '{bin,lib,images,spec}/**/*', 'README*', 'LICENSE*']
-    gem.executables = Dir['bin/*'].map { |f| File.basename(f) }
-  end
-  
-  spec_string = spec.to_ruby
-  
-  begin
-    Thread.new { eval("$SAFE = 3\n#{spec_string}", binding) }.join 
-  rescue
-    abort "unsafe gemspec: #{$!}"
-  else
-    File.open("#{spec.name}.gemspec", 'w') { |file| file.write spec_string }
-  end
+Spec::Rake::SpecTask.new(:rcov) do |spec|
+  spec.libs << 'lib' << 'spec'
+  spec.pattern = 'spec/**/*_spec.rb'
+  spec.rcov = true
 end
 
-task :bump => ["version:bump", :gemspec]
+task :spec => :check_dependencies
 
-namespace :version do
-  task :read do
-    unless defined? GEM_VERSION
-      GEM_VERSION = File.read("VERSION")
-    end
-  end
-  
-  task :bump => :read do
-    if ENV['VERSION']
-      GEM_VERSION.replace ENV['VERSION']
-    else
-      GEM_VERSION.sub!(/\d+$/) { |num| num.to_i + 1 }
-    end
-    
-    File.open("VERSION", 'w') { |v| v.write GEM_VERSION }
-  end
-end
+task :default => :spec
 
-task :release => :bump do
-  system %(git commit VERSION *.gemspec -m "release v#{GEM_VERSION}")
-  system %(git tag -am "release v#{GEM_VERSION}" v#{GEM_VERSION})
+require 'rake/rdoctask'
+Rake::RDocTask.new do |rdoc|
+  version = File.exist?('VERSION') ? File.read('VERSION') : ""
+
+  rdoc.rdoc_dir = 'rdoc'
+  rdoc.title = "rspactor #{version}"
+  rdoc.rdoc_files.include('README*')
+  rdoc.rdoc_files.include('lib/**/*.rb')
 end
