@@ -9,7 +9,7 @@ module RSpactor
     attr_accessor :use_cucumber
     
     def initialize(runner)
-      @use_cucumber = File.exist?(File.join(runner.dir, 'features'))
+      @use_cucumber = runner.cucumber?
     end
     
     def start

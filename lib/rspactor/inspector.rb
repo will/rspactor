@@ -16,6 +16,8 @@ module RSpactor
     def determine_files(file)
       candidates = translate(file)
       cucumberable = candidates.delete('cucumber')
+      runner.spork.reload if candidates.delete('spork') && runner.spork?
+      
       candidates.reject { |candidate| candidate.index('.') }.each do |dir|
         candidates.reject! { |candidate| candidate.index("#{dir}/") == 0 }
       end
@@ -38,6 +40,7 @@ module RSpactor
         candidates << file
       elsif cucumber_file?(file)
         candidates << 'cucumber'
+        candidates << 'spork' if file =~ /^features\/support\//
       else
         spec_file = append_spec_file_extension(file)
         
@@ -46,13 +49,18 @@ module RSpactor
           if file =~ %r:^app/controllers/application(_controller)?.rb$:
             candidates << 'controllers'
           elsif file == 'app/helpers/application_helper.rb'
-            candidates << 'helpers' << 'views'
-          elsif !file.include?("app/views/") || runner.options[:view]
+            candidates << 'helpers'
+            candidates << 'views' if runner.options[:view]
+          elsif file.include?("app/views/")
+            if runner.options[:view]
+              candidates << spec_file.sub('app/', '')
+              if file =~ %r:^app/(views/.+\.[a-z]+)\.[a-z]+$:
+                candidates << append_spec_file_extension($1)
+              end
+            end
+          else
             candidates << spec_file.sub('app/', '')
-            
-            if file =~ %r:^app/(views/.+\.[a-z]+)\.[a-z]+$:
-              candidates << append_spec_file_extension($1)
-            elsif file =~ %r:app/helpers/(\w+)_helper.rb:
+            if file =~ %r:app/helpers/(\w+)_helper.rb:
               candidates << "views/#{$1}"
             elsif file =~ /_observer.rb$/
               candidates << candidates.last.sub('_observer', '')
@@ -65,15 +73,16 @@ module RSpactor
           # lib/bar_spec.rb -> bar_spec.rb
           candidates << candidates.last.sub(%r:\w+/:, '') if candidates.last.index('/')
         when 'config/routes.rb'
-          candidates << 'controllers' << 'helpers' << 'views' << 'routing'
+          candidates << 'controllers' << 'helpers' << 'routing'
+          candidates << 'views' if runner.options[:view]
         when 'config/database.yml', 'db/schema.rb', 'spec/factories.rb'
           candidates << 'models'
         when 'config/boot.rb', 'config/environment.rb', %r:^config/environments/:, %r:^config/initializers/:, %r:^vendor/:, 'spec/spec_helper.rb'
-          runner.spork.reload if runner.spork
+          candidates << 'spork'
           candidates << 'spec'
         when %r:^config/:
           # nothing
-        when %r:^(spec/(spec_helper|shared/.*)|config/(boot|environment(s/test)?))\.rb$:, 'spec/spec.opts', 'spec/fakeweb.rb'
+        when %r:^(spec/(spec_helper|shared/.*)|config/(boot|environment(s/test)?))\.rb$:, 'spec/spec.opts', 'spec/fakewebs.rb'
           candidates << 'spec'
         else
           candidates << spec_file
@@ -81,7 +90,7 @@ module RSpactor
       end
       
       candidates.map do |candidate|
-        if candidate == 'cucumber'
+        if candidate == 'cucumber' || candidate == 'spork'
           candidate
         elsif candidate.index('spec') == 0
           File.join(root, candidate)

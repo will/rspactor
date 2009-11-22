@@ -60,7 +60,7 @@ module RSpactor
               runner.run_cucumber_command
             when "ca\n" # Cucumber All: ~pending tagged feature
               runner.run_cucumber_command('~@wip,~@pending')
-            when "sr\n"
+            when "r\n"
               runner.spork.reload if runner.spork
             else
               if wait_for_enter_key("** Running all specs... Hit <enter> again to exit RSpactor", 1)

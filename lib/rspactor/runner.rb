@@ -12,20 +12,22 @@ module RSpactor
     def initialize(dir, options = {})
       @dir = dir
       @options = options
+      @spork = Spork.new(self) if options[:spork]
       read_git_head
     end
     
     def start
       load_dotfile
       puts "** RSpactor, now watching at '#{dir}'"
-      (@spork = Spork.new(self)) && @spork.start if options[:spork]
+      spork.start if spork?
       start_interactor
       start_listener
     end
     
     def start_interactor
       @interactor = Interactor.new(self)
-      aborted = @interactor.wait_for_enter_key("** Hit <enter> to skip initial spec & cucumber run", 2, false)
+      message = "** Hit <enter> to skip initial spec #{"& cucumber " if cucumber?}run"
+      aborted = @interactor.wait_for_enter_key(message, 2, false)
       @interactor.start_termination_handler
       unless aborted
         run_all_specs
@@ -67,7 +69,7 @@ module RSpactor
     end
     
     def run_cucumber_command(tags = '@wip:2', clear = @options[:clear])
-      return unless File.exist?(File.join(dir, 'features'))
+      return unless cucumber?
       
       system("clear;") if clear
       puts "** Running all #{tags} tagged features..."
@@ -77,6 +79,14 @@ module RSpactor
     
     def last_run_failed?
       @last_run_failed == false
+    end
+    
+    def cucumber?
+      @cucumber ||= File.exist?(File.join(dir, 'features'))
+    end
+    
+    def spork?
+      spork != nil
     end
     
   protected
@@ -121,21 +131,16 @@ module RSpactor
       else
         opts = "--color"
       end
-      
+      opts << " --drb" if spork
       opts << spec_formatter_opts
       # only add the "progress" formatter unless no other (besides growl) is specified
       opts << ' -f progress' unless opts.scan(/\s(?:-f|--format)\b/).length > 1
-      
       opts
     end
     
     def cucumber_opts(tags)
-      if File.exist?('features/support/cucumber.opts')
-        opts = File.read('features/support/cucumber.opts').gsub("\n", ' ')
-      else
-        opts = "--color --format progress --drb --no-profile"
-      end
-      
+      opts = "--profile rspactor"
+      opts << " --drb" if spork
       opts << " --tags #{tags}"
       opts << cucumber_formatter_opts
       opts << " --require features" # because using require option overwrite default require
