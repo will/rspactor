@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rspactor}
-  s.version = "0.5.4"
+  s.version = "0.5.5"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Mislav Marohni\304\207", "Andreas Wolff", "Pelle Braendgaard", "Thibaud Guillaume-Gentil"]
-  s.date = %q{2009-11-21}
+  s.date = %q{2009-11-22}
   s.default_executable = %q{rspactor}
   s.description = %q{RSpactor is a command line tool to automatically run your changed specs & cucumber features (much like autotest).}
   s.email = %q{thibaud@thibaud.me}
@@ -31,7 +31,6 @@ Gem::Specification.new do |s|
      "images/success.png",
      "lib/cucumber_growler.rb",
      "lib/rspactor.rb",
-     "lib/rspactor/celerity.rb",
      "lib/rspactor/growl.rb",
      "lib/rspactor/inspector.rb",
      "lib/rspactor/interactor.rb",
@@ -39,6 +38,7 @@ Gem::Specification.new do |s|
      "lib/rspactor/runner.rb",
      "lib/rspactor/spork.rb",
      "lib/rspec_growler.rb",
+     "rspactor.gemspec",
      "spec/inspector_spec.rb",
      "spec/listener_spec.rb",
      "spec/runner_spec.rb"
