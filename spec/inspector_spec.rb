@@ -2,8 +2,8 @@ require 'rspactor/inspector'
 
 describe RSpactor::Inspector do
   before(:all) do
-    options = { :view => true }
-    @inspector = described_class.new(mock('Runner', :dir => '/project', :options => options, :spork => false))
+    options = { :view => true, :spork? => false  }
+    @inspector = described_class.new(mock('Runner', :dir => '/project', :options => options))
   end
   
   def translate(file)
@@ -54,7 +54,7 @@ describe RSpactor::Inspector do
     end
     
     it "should consider all controllers, helpers and views when routes.rb changes" do
-      translate('config/routes.rb').should == ['/project/spec/controllers', '/project/spec/helpers', '/project/spec/views', '/project/spec/routing']
+      translate('config/routes.rb').should == ['/project/spec/controllers', '/project/spec/helpers', '/project/spec/routing', '/project/spec/views']
     end
     
     it "should consider all models when config/database.yml changes" do
@@ -74,7 +74,7 @@ describe RSpactor::Inspector do
     end
     
     it "should consider all specs when spec_helper changes" do
-      translate('spec/spec_helper.rb').should == ['/project/spec']
+      translate('spec/spec_helper.rb').should == ['spork', '/project/spec']
     end
     
     it "should consider all specs when code under spec/shared/ changes" do
@@ -82,15 +82,15 @@ describe RSpactor::Inspector do
     end
     
     it "should consider all specs when app configuration changes" do
-      translate('config/environment.rb').should == ['/project/spec']
-      translate('config/environments/test.rb').should == ['/project/spec']
-      translate('config/boot.rb').should == ['/project/spec']
+      translate('config/environment.rb').should == ['spork', '/project/spec']
+      translate('config/environments/test.rb').should == ['spork', '/project/spec']
+      translate('config/boot.rb').should == ['spork', '/project/spec']
     end
     
     it "should consider cucumber when a features file change" do
       translate('features/login.feature').should == ['cucumber']
       translate('features/steps/webrat_steps.rb').should == ['cucumber']
-      translate('features/support/env.rb').should == ['cucumber']
+      translate('features/support/env.rb').should == ['cucumber', 'spork']
     end
     
   end

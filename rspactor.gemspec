@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Mislav Marohni\304\207", "Andreas Wolff", "Pelle Braendgaard", "Thibaud Guillaume-Gentil"]
-  s.date = %q{2009-11-22}
+  s.date = %q{2009-11-29}
   s.default_executable = %q{rspactor}
   s.description = %q{RSpactor is a command line tool to automatically run your changed specs & cucumber features (much like autotest).}
   s.email = %q{thibaud@thibaud.me}

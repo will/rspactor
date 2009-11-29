@@ -1,9 +1,8 @@
 === Install
 
-  git clone git://github.com/rubyphunk/rspactor.git
+  git clone git://github.com/guillaumegentil/rspactor.git
   cd rspactor
-  gem build rspactor.gemspec
-  sudo gem install rspactor-VERSION.gem
+  rake install
 
 === Usage
 
@@ -13,7 +12,6 @@
 === Command Line Options
 
 * <code> --coral    </code>
-* <code> --celerity </code>
 * <code> --drb      </code>
 * <code> --view     </code>
 * <code> --clear    </code>
