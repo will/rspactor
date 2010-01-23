@@ -38,9 +38,12 @@ module RSpactor
     def start_listener
       @inspector = Inspector.new(self)
       
-      Listener.new(Inspector::EXTENSIONS) do |files|
+      @listener = Listener.new(Inspector::EXTENSIONS)
+      @listener.latency = 0.2
+      @listener.watch_directories(dir) do |files|
         changed_files(files) unless git_head_changed?
-      end.run(dir)
+      end
+      @listener.start
     end
     
     def load_dotfile
