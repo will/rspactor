@@ -10,7 +10,7 @@ module CucumberGrowler
       alias original_print_stats print_stats
       include InstanceMethods
       
-      def print_stats(features)
+      def print_stats(features, profiles = [])
         title, icon, messages = '', '', []
         [:failed, :skipped, :undefined, :pending, :passed].reverse.each do |status|
           if step_mother.steps(status).any?
