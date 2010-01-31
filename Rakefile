@@ -8,7 +8,7 @@ begin
     gem.summary = "RSpactor is a command line tool to automatically run your changed specs & cucumber features."
     gem.description = "RSpactor is a command line tool to automatically run your changed specs & cucumber features (much like autotest)."
     gem.email = "thibaud@thibaud.me"
-    gem.homepage = "http://github.com/guillaumegentil/rspactor"
+    gem.homepage = "http://github.com/thibaudgg/rspactor"
     gem.authors = ["Mislav Marohnić", "Andreas Wolff", "Pelle Braendgaard", "Thibaud Guillaume-Gentil"]
     gem.add_dependency "ruby-fsevent", ">= 0.2.1"
     gem.add_development_dependency "rspec", ">= 1.2.9"
