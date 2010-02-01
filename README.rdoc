@@ -1,8 +1,6 @@
 === Install
 
-  git clone git://github.com/guillaumegentil/rspactor.git
-  cd rspactor
-  rake install
+  gem install rspactor
 
 === Usage
 
