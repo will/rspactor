@@ -1,3 +1,9 @@
+=== Dependencies
+
+RubyCocoa is needed (you can help to switch to ruby-fsevent, see branches)
+
+  Installing ruby-cocoa with rvm: http://gist.github.com/294465
+
 === Install
 
   gem install rspactor

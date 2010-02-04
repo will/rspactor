@@ -110,9 +110,7 @@ describe RSpactor::Runner do
       end
       
       it "should run Listener" do
-        @listener.should_receive(:start)
-        @listener.should_receive(:latency=).with(0.2)
-        @listener.should_receive(:watch_directories).with('/my/path')
+        @listener.should_receive(:run).with('/my/path')
         RSpactor::Listener.should_receive(:new).with(instance_of(Array)).and_return(@listener)
         setup
       end
